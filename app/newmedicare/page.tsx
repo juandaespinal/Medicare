@@ -5,6 +5,7 @@ import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import InitialContent from "@/components/initial-content"
+import AgeQuestion from "@/components/age-question"
 import MedicareQuestion from "@/components/medicare-question"
 import NewMedicareQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
@@ -19,6 +20,8 @@ export default function NewMedicareLandingPage() {
   const [has2500Amount, setHas2500Amount] = useState(false)
 
   // Audio refs
+  const claimAudioRef = useRef<HTMLAudioElement>(null)
+  const ageSelectionAudioRef = useRef<HTMLAudioElement>(null)
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
 
@@ -74,8 +77,21 @@ export default function NewMedicareLandingPage() {
 
   // Navigation handlers
   const handleInitialClaim = () => {
-    // Skip age question and go directly to Medicare question without playing audio
-    setCurrentStep("medicare-question")
+    // Play the audio when the first "Claim Now" button is clicked
+    playAudio(claimAudioRef)
+
+    // Go to age question instead of directly to Medicare question
+    setCurrentStep("age-question")
+  }
+
+  // Handle age selection
+  const handleAgeSelection = () => {
+    playAudio(ageSelectionAudioRef)
+
+    // After age selection, proceed to Medicare question
+    setTimeout(() => {
+      setCurrentStep("medicare-question")
+    }, 500)
   }
 
   const handleMedicareSelection = (option: string) => {
@@ -113,6 +129,16 @@ export default function NewMedicareLandingPage() {
     >
       {/* Hidden audio elements */}
       <audio
+        ref={claimAudioRef}
+        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Let-s%20get%20you%20qualified%201-mtqeraGhqXqgNjUU8telTlJiYzijNn.wav"
+        preload="auto"
+      />
+      <audio
+        ref={ageSelectionAudioRef}
+        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/great%20we%20are%20almost%20done%206-UFDENAgMUCtRT0HVqKF5aXetOIH1fE.wav"
+        preload="auto"
+      />
+      <audio
         ref={congratulationsAudioRef}
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Congratulations%20It%20looks-ioNmTiUC6kPduBw8jU4hlxcu0m0JTY.wav"
         preload="auto"
@@ -130,6 +156,8 @@ export default function NewMedicareLandingPage() {
           {currentStep === "initial-content" && (
             <InitialContent allowanceAmount={allowanceAmount} onClaimClick={handleInitialClaim} />
           )}
+
+          {currentStep === "age-question" && <AgeQuestion onAgeSelect={handleAgeSelection} />}
 
           {currentStep === "medicare-question" && <MedicareQuestion onMedicareSelect={handleMedicareSelection} />}
 
