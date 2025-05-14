@@ -19,19 +19,19 @@ export default function NewMedicareLayout({
         {/* RedTrack Tracking Script - Positioned at the top for priority loading */}
         <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
 
-        {/* First BG Tracking Script - updated with new pixel ID */}
+        {/* BIGO Tracking Scripts - updated with new pixel ID 905552102262610176 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
 window.bgdataLayer = window.bgdataLayer || [];
 function bge(){bgdataLayer.push(arguments);}
-bge('init', "905533174088800512");
-        `,
+bge('init', "905552102262610176");
+    `,
           }}
         />
 
-        {/* Second BG Tracking Script - updated with new pixel ID */}
-        <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905533174088800512"></script>
+        {/* Second BG Tracking Script */}
+        <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176"></script>
 
         {/* Other meta tags and styles */}
         <meta charSet="utf-8" />
