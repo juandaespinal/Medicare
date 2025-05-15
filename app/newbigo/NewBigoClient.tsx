@@ -6,6 +6,9 @@ import TrackingTester from "@/components/tracking-tester"
 import { trackPageView } from "@/utils/bigo-tracking"
 import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 
+// Import the TrackingDebug component
+import TrackingDebug from "@/components/tracking-debug"
+
 export default function NewBigoClient({
   children,
 }: {
@@ -52,6 +55,30 @@ export default function NewBigoClient({
         {/* RedTrack Tracking Script - Positioned at the top for priority loading */}
         <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
 
+        {/* BIGO Direct Tracking Script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+    window.bgdataLayer = window.bgdataLayer || [];
+    function bge(){bgdataLayer.push(arguments);}
+    bge('init', "905533174088800512");
+    
+    // Add direct tracking function to window object
+    window.trackBigoDirectEvent = function(eventName, eventData) {
+      try {
+        console.log("[BIGO Direct] Tracking event:", eventName, eventData || {});
+        bge(eventName, eventData || {});
+        return true;
+      } catch (error) {
+        console.error("[BIGO Direct] Error tracking event:", error);
+        return false;
+      }
+    };
+    `,
+          }}
+        />
+        <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905533174088800512"></script>
+
         {/* Other meta tags and styles */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -86,6 +113,9 @@ export default function NewBigoClient({
 
         {/* Include the tracking tester in development mode */}
         {isDevelopment && <TrackingTester />}
+
+        {/* Debug component - press Ctrl+Shift+D to toggle */}
+        <TrackingDebug />
 
         {/* Additional scripts at the end of body */}
         <script
@@ -122,5 +152,7 @@ declare global {
       loading?: boolean
     }
     rtkClickID?: string
+    trackBigoDirectEvent?: (eventName: string, eventData?: any) => boolean
+    bgdataLayer?: any[]
   }
 }

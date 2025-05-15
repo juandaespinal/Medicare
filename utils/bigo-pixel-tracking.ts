@@ -55,25 +55,28 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
           return Promise.resolve(false)
         }
 
-        console.log(`[Bigo] Tracking ${eventId} event`)
+        console.log(`[Bigo] Tracking ${eventId} event with pixel ID ${pixelId}`)
         setIsTracking(true)
 
         return new Promise<boolean>((resolve) => {
           // Create and append tracking pixel with error handling
           try {
-            // Use DOM methods instead of the Image constructor
+            // Use direct image element creation for more reliable tracking
             const img = document.createElement("img")
             const timestamp = Date.now()
 
-            // Build URL with base parameters
-            let url = `https://api.bytegle.site/bigoad/trackingevent?bbg=${encodeURIComponent(bbg)}&pixel_id=${encodeURIComponent(
+            // Build URL with base parameters - use the correct tracking URL format
+            let url = `https://api.topnotchs.site/ad/event?bbg=${encodeURIComponent(bbg)}&pixel_id=${encodeURIComponent(
               pixelId,
-            )}&event_id=${encodeURIComponent(eventId)}&timestamp_ms=${timestamp}`
+            )}&event=${encodeURIComponent(eventId)}&t=${timestamp}`
 
             // Add any additional parameters
             Object.entries(additionalParams).forEach(([key, value]) => {
               url += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`
             })
+
+            // Log the full tracking URL for debugging
+            console.log(`[Bigo] Tracking URL: ${url}`)
 
             img.onload = () => {
               console.log(`[Bigo] ${eventId} tracking complete`)

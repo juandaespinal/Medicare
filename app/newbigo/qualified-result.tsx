@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import type React from "react"
 import { Card } from "@/components/ui/card"
 import { CheckCircle, Clock, ShieldCheck, ChevronRight, Phone } from "lucide-react"
-import { useBigoTracking, handlePhoneCallTracking } from "@/utils/bigo-pixel-tracking"
+import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 import { trackButtonClick, trackPhoneCall, trackConversion } from "@/utils/bigo-tracking"
 
 interface QualifiedResultProps {
@@ -313,14 +313,92 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
 
   // Handle phone call button click
   const handleCallButtonClick = () => {
-    const phoneNumber = "1-800-123-4567" // Replace with your actual phone number
+    const phoneNumber = displayPhoneNumber || defaultPhoneNumber
 
-    // Track both phone consultation and form submission events
-    handlePhoneCallTracking(phoneNumber, trackPhoneConsultation, trackFormSubmission, () => {
-      // After tracking is complete, initiate the phone call
+    // Set loading state
+    setIsLoading(true)
+
+    // Track using both methods for redundancy
+    try {
+      // 1. Track using our custom implementation
+      trackPhoneConsultation(phoneNumber)
+
+      // 2. Track using direct BIGO script if available
+      if (window.trackBigoDirectEvent) {
+        window.trackBigoDirectEvent("phone_consult", {
+          phone_number: phoneNumber,
+          allowance_amount: allowanceAmount,
+        })
+      }
+
+      // 3. Track using the global bge function if available
+      if (window.bge) {
+        window.bge("phone_consult", {
+          phone_number: phoneNumber,
+          allowance_amount: allowanceAmount,
+        })
+      }
+
+      console.log("[Tracking] Phone consultation event fired successfully")
+
+      // Short delay before form submission tracking
+      setTimeout(() => {
+        try {
+          // 1. Track form submission using our custom implementation
+          trackFormSubmission({
+            action: "phone_call",
+            phone_number: phoneNumber,
+            timestamp: new Date().toISOString(),
+          })
+
+          // 2. Track using direct BIGO script if available
+          if (window.trackBigoDirectEvent) {
+            window.trackBigoDirectEvent("form", {
+              action: "phone_call",
+              phone_number: phoneNumber,
+              timestamp: new Date().toISOString(),
+            })
+          }
+
+          // 3. Track using the global bge function if available
+          if (window.bge) {
+            window.bge("form", {
+              action: "phone_call",
+              phone_number: phoneNumber,
+              timestamp: new Date().toISOString(),
+            })
+          }
+
+          console.log("[Tracking] Form submission event fired successfully")
+
+          // Clear loading state
+          setIsLoading(false)
+
+          // Make the call after tracking is complete
+          window.location.href = `tel:${phoneNumber}`
+        } catch (formError) {
+          console.error("[Tracking] Form submission tracking error:", formError)
+
+          // Clear loading state
+          setIsLoading(false)
+
+          // Still make the call even if tracking fails
+          window.location.href = `tel:${phoneNumber}`
+        }
+      }, 300)
+    } catch (error) {
+      console.error("[Tracking] Phone consultation tracking error:", error)
+
+      // Clear loading state
+      setIsLoading(false)
+
+      // Still make the call even if tracking fails
       window.location.href = `tel:${phoneNumber}`
-    })
+    }
   }
+
+  // Add loading state
+  const [isLoading, setIsLoading] = useState(false)
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -354,11 +432,13 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
           <div className="mb-6">
             <button
               onClick={handleCallButtonClick}
-              disabled={isTracking}
+              disabled={isLoading || isTracking}
               className="relative w-full max-w-md mx-auto bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-lg flex items-center justify-center transition-all duration-200 disabled:opacity-70"
             >
               <Phone className="mr-2 h-5 w-5" />
-              <span>{isTracking ? "Connecting..." : "Call Now: 1-800-123-4567"}</span>
+              <span>
+                {isLoading || isTracking ? "Connecting..." : `Call Now: ${formatPhoneNumber(displayPhoneNumber)}`}
+              </span>
             </button>
             <p className="text-sm text-gray-600 mt-2">Free consultation with a Medicare specialist</p>
           </div>
@@ -404,5 +484,8 @@ declare global {
       q: any[]
       loading?: boolean
     }
+    bgdataLayer?: any[]
+    bge?: (...args: any[]) => void
+    trackBigoDirectEvent?: (eventName: string, eventData?: any) => boolean
   }
 }
