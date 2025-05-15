@@ -98,6 +98,61 @@ setTimeout(function() {
             text-align: center;
         }
     </style>
+    <script>
+  // Tracking utility functions
+  function trackButtonClick(buttonType, buttonName, additionalData) {
+    if (window.bge && typeof window.bge === 'function') {
+      try {
+        // Fire generic button click event
+        window.bge('event', 'button', Object.assign({
+          button_type: buttonType,
+          button_name: buttonName
+        }, additionalData || {}));
+        
+        console.log("BIGO button click tracked: " + buttonType + " - " + buttonName, additionalData);
+        
+        // Also fire specific event based on button type
+        if (buttonType === 'consultation' || buttonType === 'call') {
+          window.bge('event', 'phone_button', Object.assign({
+            button_name: buttonName
+          }, additionalData || {}));
+        } else if (buttonType === 'form') {
+          window.bge('event', 'form_button', Object.assign({
+            button_name: buttonName
+          }, additionalData || {}));
+        }
+        
+        return true;
+      } catch (e) {
+        console.error('Error tracking button click:', e);
+        return false;
+      }
+    } else {
+      console.warn('BIGO tracking not available for button click');
+      return false;
+    }
+  }
+
+  function trackPlaceOrder(orderValue, additionalData) {
+    if (window.bge && typeof window.bge === 'function') {
+      try {
+        window.bge('event', 'ec_order', Object.assign({
+          value: orderValue || 1,
+          currency: 'USD'
+        }, additionalData || {}));
+        
+        console.log("BIGO place order tracked with value: " + (orderValue || 1), additionalData);
+        return true;
+      } catch (e) {
+        console.error('Error tracking place order:', e);
+        return false;
+      }
+    } else {
+      console.warn('BIGO tracking not available for place order');
+      return false;
+    }
+  }
+</script>
 </head>
 <body>
     <div class="container">
@@ -105,7 +160,7 @@ setTimeout(function() {
             <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
             <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
             <div class="text-center">
-                <a href="/newbigo" class="btn" onclick="if(window.bge){window.bge('event','click',{button:'go_to_main_site'});return true;}">Go to Main Site</a>
+                <a href="/newbigo" class="btn" onclick="trackButtonClick('navigation', 'go_to_main_site', {page: 'static'}); return true;">Go to Main Site</a>
             </div>
         </div>
     </div>

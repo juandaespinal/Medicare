@@ -1,5 +1,7 @@
 "use client"
 
+import { trackButtonClick } from "@/utils/tracking"
+
 interface InitialContentProps {
   allowanceAmount: string
   onClaimClick: () => void
@@ -60,7 +62,10 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
           <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
 
           <button
-            onClick={onClaimClick}
+            onClick={(e) => {
+              trackButtonClick("form", "claim_now_top", { position: "top" })
+              onClaimClick()
+            }}
             className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 size-pulse"
           >
             <div className="absolute -right-3 -top-3 bg-yellow-400 text-red-700 text-sm font-bold px-2 py-1 rounded-full">
@@ -210,7 +215,10 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
           <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
 
           <button
-            onClick={onClaimClick}
+            onClick={(e) => {
+              trackButtonClick("form", "claim_now_bottom", { position: "bottom" })
+              onClaimClick()
+            }}
             className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 size-pulse"
           >
             <div className="absolute -right-3 -top-3 bg-yellow-400 text-red-700 text-sm font-bold px-2 py-1 rounded-full">

@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useEffect, useRef, useState, useCallback } from "react"
+import { trackButtonClick, trackPlaceOrder } from "@/utils/tracking"
 
 interface QualifiedResultProps {
   allowanceAmount: string
@@ -79,20 +80,13 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
         setReturnedFromCall(true)
 
         // Fire the "Place an Order" event
-        try {
-          if (window.bge) {
-            console.log("Firing 'Place an Order' BIGO event")
-            window.bge("event", "ec_order", {
-              value: 1,
-              currency: "USD",
-            })
-          }
-        } catch (error) {
-          console.error("Error firing BIGO event:", error)
-        }
+        trackPlaceOrder(1, {
+          call_duration: callDuration,
+          phone_number: displayPhoneNumber || defaultPhoneNumber,
+        })
       }
     }
-  }, [callMade])
+  }, [callMade, displayPhoneNumber, defaultPhoneNumber])
 
   // Effect to handle phone number updates from Ringba
   useEffect(() => {
@@ -257,13 +251,15 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     // Prevent event propagation to stop any parent handlers
     e.stopPropagation()
 
+    // Track button click
+    trackButtonClick("consultation", "call_now", {
+      phone_number: displayPhoneNumber || defaultPhoneNumber,
+    })
+
     // Set call made state and store the start time
     setCallMade(true)
     callStartTimeRef.current = Date.now()
     console.log("Call initiated at:", new Date(callStartTimeRef.current).toISOString())
-
-    // Don't disable BIGO tracking anymore - we want to track the initial click
-    // We'll fire the "Place an Order" event when they return from the call
 
     // Use the current display phone number
     const phoneToCall = displayPhoneNumber || defaultPhoneNumber
