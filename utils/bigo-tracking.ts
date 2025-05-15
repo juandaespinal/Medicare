@@ -21,6 +21,13 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       viewport: `${window.innerWidth}x${window.innerHeight}`,
       language: navigator.language,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timestamp: Date.now(),
+      client_id: localStorage.getItem("bigo_client_id") || `client_${Math.random().toString(36).substring(2, 15)}`,
+    }
+
+    // Store client ID for future use
+    if (!localStorage.getItem("bigo_client_id")) {
+      localStorage.setItem("bigo_client_id", clientData.client_id as string)
     }
 
     // Send the event to our server-side API
@@ -35,10 +42,6 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
         ...(eventData || {}),
       }),
     })
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`)
-    }
 
     const result = await response.json()
 

@@ -6,7 +6,11 @@ export async function POST(request: Request) {
     const data = await request.json()
 
     // Get the BIGO pixel ID from environment or use the default
-    const pixelId = process.env.BIGO_PIXEL_ID || "905552102262610176"
+    const pixelId = process.env.BIGO_PIXEL_ID
+
+    if (!pixelId) {
+      throw new Error("BIGO_PIXEL_ID environment variable is not set")
+    }
 
     // Extract event name and data
     const { event, ...eventData } = data
@@ -23,7 +27,7 @@ export async function POST(request: Request) {
       server_timestamp: Date.now(),
     }
 
-    console.log(`Server-to-Server BIGO tracking - Event: ${event}`, trackingPayload)
+    console.log(`Server-to-Server BIGO tracking - Event: ${event}, Pixel ID: ${pixelId}`, trackingPayload)
 
     // Send the event to BIGO's server
     const response = await fetch(`https://api.topnotchs.site/ad/event?pixel_id=${pixelId}`, {
@@ -37,12 +41,22 @@ export async function POST(request: Request) {
       }),
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`BIGO API responded with status: ${response.status}, message: ${errorText}`)
+    const responseText = await response.text()
+    let responseData
+
+    try {
+      // Try to parse as JSON
+      responseData = JSON.parse(responseText)
+    } catch (e) {
+      // If not valid JSON, use the text as is
+      responseData = { raw_response: responseText }
     }
 
-    const responseData = await response.json()
+    if (!response.ok) {
+      console.error(`BIGO API error (${response.status}):`, responseData)
+      throw new Error(`BIGO API responded with status: ${response.status}, message: ${responseText}`)
+    }
+
     console.log("BIGO API response:", responseData)
 
     return NextResponse.json({
