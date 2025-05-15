@@ -1,10 +1,7 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
 import type React from "react"
-import { Card } from "@/components/ui/card"
-import { CheckCircle, Clock, ShieldCheck, ChevronRight, Phone } from "lucide-react"
-import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
+import { useEffect, useRef, useState, useCallback } from "react"
 import { trackButtonClick, trackPhoneCall, trackConversion } from "@/utils/bigo-tracking"
 
 interface QualifiedResultProps {
@@ -13,9 +10,6 @@ interface QualifiedResultProps {
 }
 
 export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimClick }: QualifiedResultProps) {
-  const [timeLeft, setTimeLeft] = useState(15 * 60) // 15 minutes in seconds
-  const { trackPhoneConsultation, trackFormSubmission, isTracking } = useBigoTracking()
-
   // Default phone number
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
@@ -293,181 +287,109 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     }
   }
 
-  // Countdown timer effect
-  useEffect(() => {
-    if (timeLeft <= 0) return
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1)
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [timeLeft])
-
-  // Format time as MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-
-  // Handle phone call button click
-  const handleCallButtonClick = () => {
-    const phoneNumber = displayPhoneNumber || defaultPhoneNumber
-
-    // Set loading state
-    setIsLoading(true)
-
-    // Track using both methods for redundancy
-    try {
-      // 1. Track using our custom implementation
-      trackPhoneConsultation(phoneNumber)
-
-      // 2. Track using direct BIGO script if available
-      if (window.trackBigoDirectEvent) {
-        window.trackBigoDirectEvent("phone_consult", {
-          phone_number: phoneNumber,
-          allowance_amount: allowanceAmount,
-        })
-      }
-
-      // 3. Track using the global bge function if available
-      if (window.bge) {
-        window.bge("phone_consult", {
-          phone_number: phoneNumber,
-          allowance_amount: allowanceAmount,
-        })
-      }
-
-      console.log("[Tracking] Phone consultation event fired successfully")
-
-      // Short delay before form submission tracking
-      setTimeout(() => {
-        try {
-          // 1. Track form submission using our custom implementation
-          trackFormSubmission({
-            action: "phone_call",
-            phone_number: phoneNumber,
-            timestamp: new Date().toISOString(),
-          })
-
-          // 2. Track using direct BIGO script if available
-          if (window.trackBigoDirectEvent) {
-            window.trackBigoDirectEvent("form", {
-              action: "phone_call",
-              phone_number: phoneNumber,
-              timestamp: new Date().toISOString(),
-            })
-          }
-
-          // 3. Track using the global bge function if available
-          if (window.bge) {
-            window.bge("form", {
-              action: "phone_call",
-              phone_number: phoneNumber,
-              timestamp: new Date().toISOString(),
-            })
-          }
-
-          console.log("[Tracking] Form submission event fired successfully")
-
-          // Clear loading state
-          setIsLoading(false)
-
-          // Make the call after tracking is complete
-          window.location.href = `tel:${phoneNumber}`
-        } catch (formError) {
-          console.error("[Tracking] Form submission tracking error:", formError)
-
-          // Clear loading state
-          setIsLoading(false)
-
-          // Still make the call even if tracking fails
-          window.location.href = `tel:${phoneNumber}`
-        }
-      }, 300)
-    } catch (error) {
-      console.error("[Tracking] Phone consultation tracking error:", error)
-
-      // Clear loading state
-      setIsLoading(false)
-
-      // Still make the call even if tracking fails
-      window.location.href = `tel:${phoneNumber}`
-    }
-  }
-
-  // Add loading state
-  const [isLoading, setIsLoading] = useState(false)
-
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card className="border-0 shadow-lg overflow-hidden mb-6">
+    <div className="max-w-2xl mx-auto qualified-result">
+      <div className="border-0 shadow-lg overflow-hidden mb-6 rounded-lg">
         <div className="bg-gradient-to-r from-green-600 to-green-700 p-3 text-white text-center">
           <h3 className="text-xl font-bold">Qualification Confirmed</h3>
         </div>
 
         <div className="p-4 text-center">
           <div className="flex justify-center mb-3">
-            <CheckCircle className="h-16 w-16 text-green-500" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 text-green-500"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
           </div>
 
           <h4 className="text-2xl font-bold text-center mb-4">Congratulations! You Qualify!</h4>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
             <div className="flex items-center justify-center">
-              <Clock className="h-5 w-5 text-yellow-600 mr-2" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-yellow-600 mr-2"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
               <p className="text-lg text-yellow-800 font-medium">
-                Your {allowanceAmount} is reserved for the next{" "}
-                <span className="font-bold">{formatTime(timeLeft)}</span>
+                Your {allowanceAmount} is reserved for the next 15 minutes
               </p>
             </div>
           </div>
 
           <p className="text-xl mb-5">
-            Click the button below now to talk to an advisor who will help you claim your {allowanceAmount}.
+            Call{" "}
+            <span className="font-bold phone-display" id="dynamic-phone-number">
+              {formatPhoneNumber(displayPhoneNumber)}
+            </span>{" "}
+            now to speak with an advisor who will help you claim your {allowanceAmount}.
           </p>
-
-          {/* Call Now Button */}
-          <div className="mb-6">
-            <button
-              onClick={handleCallButtonClick}
-              disabled={isLoading || isTracking}
-              className="relative w-full max-w-md mx-auto bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg text-xl shadow-lg flex items-center justify-center transition-all duration-200 disabled:opacity-70"
-            >
-              <Phone className="mr-2 h-5 w-5" />
-              <span>
-                {isLoading || isTracking ? "Connecting..." : `Call Now: ${formatPhoneNumber(displayPhoneNumber)}`}
-              </span>
-            </button>
-            <p className="text-sm text-gray-600 mt-2">Free consultation with a Medicare specialist</p>
-          </div>
 
           {/* Enhanced attention-grabbing button for qualified result */}
           <div className="relative">
             <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
 
             <button
-              onClick={onFinalClaimClick}
-              disabled={isTracking}
-              className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out transform hover:scale-105 border-4 border-yellow-400 animate-pulse disabled:opacity-70"
+              ref={buttonRef}
+              onClick={handleButtonClick}
+              className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 animate-pulse"
+              data-default-number={defaultPhoneNumber}
             >
               <div className="absolute -right-3 -top-3 bg-yellow-400 text-red-700 text-sm font-bold px-2 py-1 rounded-full">
                 FREE
               </div>
               <div className="flex items-center justify-center">
-                <span>{isTracking ? "Processing..." : "CLAIM NOW"}</span>
-                <ChevronRight className="ml-2 h-8 w-8" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="mr-2 h-8 w-8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                <span>CALL NOW</span>
               </div>
             </button>
           </div>
 
           <div className="mt-3 flex justify-center items-center text-sm text-gray-600">
-            <ShieldCheck className="h-4 w-4 mr-1.5" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-1.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
             <span>Your information is secure & confidential</span>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
@@ -484,8 +406,5 @@ declare global {
       q: any[]
       loading?: boolean
     }
-    bgdataLayer?: any[]
-    bge?: (...args: any[]) => void
-    trackBigoDirectEvent?: (eventName: string, eventData?: any) => boolean
   }
 }

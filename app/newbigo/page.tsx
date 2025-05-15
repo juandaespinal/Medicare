@@ -23,7 +23,7 @@ export default function NewBigoLandingPage() {
   const pageLoadedRef = useRef(false)
 
   // Initialize BIGO pixel tracking
-  const { trackBigoEvent, trackFormSubmission, isTracking } = useBigoTracking()
+  const { trackBigoEvent, isTracking } = useBigoTracking()
 
   // Audio refs
   const claimAudioRef = useRef<HTMLAudioElement>(null)
@@ -135,20 +135,6 @@ export default function NewBigoLandingPage() {
   const handleMedicareSelection = (option: string) => {
     // Track button click with BIGO pixel
     trackBigoEvent("button")
-
-    // Track form submission for completing the qualification process
-    if (option === "Yes") {
-      trackFormSubmission({
-        action: "qualification_complete",
-        qualified: "yes",
-        amount: allowanceAmount,
-      })
-    } else {
-      trackFormSubmission({
-        action: "qualification_complete",
-        qualified: "no",
-      })
-    }
 
     // Track button click with original tracking
     trackButtonClick("medicare_selection", { step: "medicare_question", selection: option })
