@@ -11,6 +11,7 @@ import NewBigoQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
+import { trackPageView } from "@/utils/tracking"
 
 export default function NewBigoLandingPage() {
   const searchParams = useSearchParams()
@@ -18,6 +19,7 @@ export default function NewBigoLandingPage() {
   const [allowanceAmount, setAllowanceAmount] = useState("Grocery Allowance")
   const [formattedAmount, setFormattedAmount] = useState("")
   const [has2500Amount, setHas2500Amount] = useState(false)
+  const pageLoadedRef = useRef(false)
 
   // Audio refs
   const claimAudioRef = useRef<HTMLAudioElement>(null)
@@ -27,23 +29,14 @@ export default function NewBigoLandingPage() {
 
   // Fire BIGO page_view event when the component mounts
   useEffect(() => {
+    if (pageLoadedRef.current) return
+    pageLoadedRef.current = true
+
     console.log("NewBigoLandingPage component mounted, firing page_view event")
 
     // Function to fire BIGO page_view event
     const fireBigoPageView = () => {
-      if (window.bge && typeof window.bge === "function") {
-        try {
-          window.bge("event", "page_view")
-          console.log("Successfully fired 'page_view' event from page component")
-          return true
-        } catch (e) {
-          console.error("Error firing page_view event from page component:", e)
-          return false
-        }
-      } else {
-        console.warn("BIGO tracking not available in page component")
-        return false
-      }
+      return trackPageView("newbigo_landing")
     }
 
     // Try to fire immediately
@@ -55,7 +48,38 @@ export default function NewBigoLandingPage() {
         fireBigoPageView()
       }, 2000)
     }
+
+    // Set up retry mechanism
+    const retryInterval = setInterval(() => {
+      if (window.bge && typeof window.bge === "function") {
+        trackPageView("newbigo_landing_retry")
+        clearInterval(retryInterval)
+      }
+    }, 5000)
+
+    // Clean up
+    return () => {
+      clearInterval(retryInterval)
+    }
   }, [])
+
+  // Track step changes
+  useEffect(() => {
+    if (currentStep !== "initial-content") {
+      try {
+        if (window.bge && typeof window.bge === "function") {
+          window.bge("event", "step_change", {
+            step: currentStep,
+            timestamp: new Date().toISOString(),
+            event_id: `step_${currentStep}_${Math.random().toString(36).substring(2, 9)}`,
+          })
+          console.log(`Step changed to: ${currentStep}`)
+        }
+      } catch (e) {
+        console.error("Error tracking step change:", e)
+      }
+    }
+  }, [currentStep])
 
   useEffect(() => {
     // Get amount parameter from URL

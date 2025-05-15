@@ -6,20 +6,44 @@
     
     <!-- BIGO Tracking Scripts - using the old pixel ID 905552102262610176 -->
     <script>
-window.bgdataLayer = window.bgdataLayer || [];
-function bge(){bgdataLayer.push(arguments);}
-bge('init', "905552102262610176");
+// Clear any existing BIGO data to ensure fresh initialization
+window.bgdataLayer = [];
+window.bge = function() {
+  window.bgdataLayer.push(arguments);
+  console.log("BIGO event pushed:", arguments);
+};
+
+// Initialize BIGO with pixel ID
+window.bge('init', "905552102262610176");
+
+// Add a random parameter to prevent caching
+const cacheBuster = Math.random().toString(36).substring(2, 15);
+console.log("BIGO initialized with cache buster:", cacheBuster);
 
 // Explicitly fire page view event immediately after initialization
-bge('event', 'page_view');
+window.bge('event', 'page_view', {
+  timestamp: new Date().toISOString(),
+  event_id: 'initial_page_view_' + cacheBuster,
+  url: window.location.href,
+  referrer: document.referrer || "",
+  title: document.title || ""
+});
 
 // Also fire it again after a short delay to ensure it's captured
 setTimeout(function() {
   console.log("Firing delayed BIGO page view event from static HTML");
-  if(window.bge) window.bge('event', 'page_view');
+  if(window.bge) {
+    window.bge('event', 'page_view', {
+      timestamp: new Date().toISOString(),
+      event_id: 'delayed_page_view_' + cacheBuster,
+      url: window.location.href,
+      referrer: document.referrer || "",
+      title: document.title || ""
+    });
+  }
 }, 1000);
     </script>
-    <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176"></script>
+    <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176&cb=nocache_static"></script>
     
     <!-- Debug script to verify BIGO is loaded and firing events -->
     <script>
@@ -29,7 +53,11 @@ setTimeout(function() {
           console.log("BIGO tracking is properly initialized in static HTML");
           // Fire another test event
           try {
-            window.bge('event', 'page_loaded');
+            window.bge('event', 'page_loaded', {
+              timestamp: new Date().toISOString(),
+              event_id: 'test_' + Math.random().toString(36).substring(2, 15),
+              url: window.location.href
+            });
             console.log("Successfully fired 'page_loaded' event");
           } catch (e) {
             console.error("Error firing test event:", e);
@@ -99,26 +127,43 @@ setTimeout(function() {
         }
     </style>
     <script>
+  // Function to generate a unique event ID
+  function generateEventId() {
+    return 'ev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+  }
+
   // Tracking utility functions
   function trackButtonClick(buttonType, buttonName, additionalData) {
     if (window.bge && typeof window.bge === 'function') {
       try {
+        const timestamp = new Date().toISOString();
+        const eventId = generateEventId();
+        
         // Fire generic button click event
         window.bge('event', 'button', Object.assign({
           button_type: buttonType,
-          button_name: buttonName
+          button_name: buttonName,
+          event_id: eventId,
+          timestamp: timestamp
         }, additionalData || {}));
         
-        console.log("BIGO button click tracked: " + buttonType + " - " + buttonName, additionalData);
+        console.log("BIGO button click tracked: " + buttonType + " - " + buttonName, {
+          event_id: eventId,
+          timestamp: timestamp
+        });
         
         // Also fire specific event based on button type
         if (buttonType === 'consultation' || buttonType === 'call') {
           window.bge('event', 'phone_button', Object.assign({
-            button_name: buttonName
+            button_name: buttonName,
+            event_id: eventId + '_phone',
+            timestamp: timestamp
           }, additionalData || {}));
         } else if (buttonType === 'form') {
           window.bge('event', 'form_button', Object.assign({
-            button_name: buttonName
+            button_name: buttonName,
+            event_id: eventId + '_form',
+            timestamp: timestamp
           }, additionalData || {}));
         }
         
@@ -136,12 +181,20 @@ setTimeout(function() {
   function trackPlaceOrder(orderValue, additionalData) {
     if (window.bge && typeof window.bge === 'function') {
       try {
+        const timestamp = new Date().toISOString();
+        const eventId = generateEventId();
+        
         window.bge('event', 'ec_order', Object.assign({
           value: orderValue || 1,
-          currency: 'USD'
+          currency: 'USD',
+          event_id: eventId,
+          timestamp: timestamp
         }, additionalData || {}));
         
-        console.log("BIGO place order tracked with value: " + (orderValue || 1), additionalData);
+        console.log("BIGO place order tracked with value: " + (orderValue || 1), {
+          event_id: eventId,
+          timestamp: timestamp
+        });
         return true;
       } catch (e) {
         console.error('Error tracking place order:', e);
@@ -160,7 +213,7 @@ setTimeout(function() {
             <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
             <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
             <div class="text-center">
-                <a href="/newbigo" class="btn" onclick="trackButtonClick('navigation', 'go_to_main_site', {page: 'static'}); return true;">Go to Main Site</a>
+                <a href="/newbigo" class="btn" onclick="trackButtonClick('navigation', 'go_to_main_site', {page: 'static', timestamp: new Date().toISOString(), event_id: 'static_' + Math.random().toString(36).substring(2, 15)}); return true;">Go to Main Site</a>
             </div>
         </div>
     </div>
@@ -186,7 +239,13 @@ setTimeout(function() {
             console.log("DOM fully loaded in static HTML, firing page_view event");
             if (window.bge && typeof window.bge === 'function') {
                 try {
-                    window.bge('event', 'page_view');
+                    window.bge('event', 'page_view', {
+                        timestamp: new Date().toISOString(),
+                        event_id: 'dom_loaded_' + Math.random().toString(36).substring(2, 15),
+                        url: window.location.href,
+                        referrer: document.referrer || "",
+                        title: document.title || ""
+                    });
                     console.log("Successfully fired 'page_view' event on DOMContentLoaded in static HTML");
                 } catch (e) {
                     console.error("Error firing page_view event:", e);
@@ -199,10 +258,54 @@ setTimeout(function() {
             console.log("Window fully loaded in static HTML, firing page_view event");
             if (window.bge && typeof window.bge === 'function') {
                 try {
-                    window.bge('event', 'page_view');
+                    window.bge('event', 'page_view', {
+                        timestamp: new Date().toISOString(),
+                        event_id: 'window_load_' + Math.random().toString(36).substring(2, 15),
+                        url: window.location.href,
+                        referrer: document.referrer || "",
+                        title: document.title || ""
+                    });
                     console.log("Successfully fired 'page_view' event on window load in static HTML");
                 } catch (e) {
                     console.error("Error firing page_view event on window load:", e);
+                }
+            }
+        });
+    </script>
+
+    <!-- Add a debug button to manually fire events for testing -->
+    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 9999; display: none;">
+        <button 
+            id="debug-fire-event" 
+            style="padding: 8px 12px; background-color: #f00; color: white; border: none; border-radius: 4px; cursor: pointer;"
+            onclick="
+                if (window.bge) {
+                    const eventId = 'manual_' + Math.random().toString(36).substring(2, 15);
+                    window.bge('event', 'button', {
+                        button_type: 'debug',
+                        button_name: 'test_button',
+                        event_id: eventId,
+                        timestamp: new Date().toISOString(),
+                        manual: true
+                    });
+                    console.log('Manually fired test event with ID:', eventId);
+                    alert('Test event fired! Check console for details.');
+                } else {
+                    alert('BIGO tracking not available!');
+                }
+            "
+        >
+            Fire Test Event
+        </button>
+    </div>
+
+    <!-- Script to enable debug button with keyboard shortcut (Ctrl+Shift+D) -->
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                const debugButton = document.getElementById('debug-fire-event');
+                if (debugButton) {
+                    debugButton.style.display = debugButton.style.display === 'none' ? 'block' : 'none';
                 }
             }
         });
