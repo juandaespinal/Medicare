@@ -1,7 +1,7 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 
 interface BigoTrackingOptions {
   onlyTrackOnNewbigo?: boolean
@@ -11,6 +11,7 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
   const { onlyTrackOnNewbigo = true } = options
   const searchParams = useSearchParams()
   const [isTracking, setIsTracking] = useState(false)
+  const pageViewFired = useRef(false)
 
   // Safe function to get URL parameters
   const safeGetParam = useCallback(
@@ -55,6 +56,17 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
           return Promise.resolve(false)
         }
 
+        // Prevent duplicate page_view events
+        if (eventId === "page_view" && pageViewFired.current) {
+          console.log("[Bigo] Page view already fired, skipping duplicate")
+          return Promise.resolve(true)
+        }
+
+        // Mark page_view as fired if this is a page_view event
+        if (eventId === "page_view") {
+          pageViewFired.current = true
+        }
+
         console.log(`[Bigo] Tracking ${eventId} event`)
         setIsTracking(true)
 
@@ -66,7 +78,6 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
             const timestamp = Date.now()
 
             // Build URL with base parameters
-            // IMPORTANT: Use the correct event parameter name (event_id) and format
             let url = `https://api.bytegle.site/bigoad/trackingevent?bbg=${encodeURIComponent(bbg)}&pixel_id=${encodeURIComponent(
               pixelId,
             )}&event_id=${encodeURIComponent(eventId)}&timestamp_ms=${timestamp}`
@@ -115,10 +126,11 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
     [safeGetParam, isNewbigoPath, isTracking],
   )
 
-  // Track page view on mount
+  // Track page view on mount - but only once
   useEffect(() => {
     try {
-      if (!isNewbigoPath()) return
+      // Skip if not on newbigo path or if page view already fired
+      if (!isNewbigoPath() || pageViewFired.current) return
 
       const bbg = safeGetParam("bbg") || safeGetParam("_BBG_") || ""
       if (bbg) {
@@ -157,20 +169,11 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
     [trackBigoEvent],
   )
 
-  // Track button click
-  const trackButtonClick = useCallback(
-    (buttonId: string, buttonData: Record<string, string> = {}) => {
-      return trackBigoEvent("button", { button_id: buttonId, ...buttonData })
-    },
-    [trackBigoEvent],
-  )
-
   return {
     trackBigoEvent,
     trackPhoneConsultation,
     trackFormSubmission,
     trackPhoneDetail,
-    trackButtonClick,
     isTracking,
   }
 }
