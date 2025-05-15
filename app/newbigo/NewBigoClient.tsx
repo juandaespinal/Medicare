@@ -52,6 +52,68 @@ export default function NewBigoClient({
         {/* RedTrack Tracking Script - Positioned at the top for priority loading */}
         <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
 
+        {/* BIGO Tracking Script */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Initialize BIGO tracking
+              window.bgdataLayer = window.bgdataLayer || [];
+              function bge(){bgdataLayer.push(arguments);}
+              
+              // Helper function to track BIGO events directly
+              window.trackBigoEvent = function(eventName, params) {
+                try {
+                  const urlParams = new URLSearchParams(window.location.search);
+                  const bbg = urlParams.get('bbg') || urlParams.get('_BBG_');
+                  const pixelId = urlParams.get('pixel_id') || urlParams.get('_PIXEL_ID_') || '905533174088800512';
+                  
+                  if (!bbg) {
+                    console.log('[BIGO Direct] Cannot track: BBG parameter missing');
+                    return false;
+                  }
+                  
+                  console.log('[BIGO Direct] Tracking ' + eventName + ' event');
+                  
+                  // Create tracking pixel
+                  const img = document.createElement('img');
+                  const timestamp = Date.now();
+                  
+                  // Build URL with parameters
+                  let url = 'https://api.bytegle.site/bigoad/trackingevent?bbg=' + 
+                    encodeURIComponent(bbg) + 
+                    '&pixel_id=' + encodeURIComponent(pixelId) + 
+                    '&event_id=' + encodeURIComponent(eventName) + 
+                    '&timestamp_ms=' + timestamp;
+                  
+                  // Add any additional parameters
+                  if (params) {
+                    Object.keys(params).forEach(function(key) {
+                      url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+                    });
+                  }
+                  
+                  img.onload = function() {
+                    console.log('[BIGO Direct] ' + eventName + ' tracking complete');
+                  };
+                  
+                  img.onerror = function() {
+                    console.log('[BIGO Direct] ' + eventName + ' tracking error (may be normal)');
+                  };
+                  
+                  img.src = url;
+                  img.style.display = 'none';
+                  document.body.appendChild(img);
+                  
+                  return true;
+                } catch (error) {
+                  console.error('[BIGO Direct] Tracking error:', error);
+                  return false;
+                }
+              };
+            `,
+          }}
+        />
+
         {/* Other meta tags and styles */}
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -122,5 +184,7 @@ declare global {
       loading?: boolean
     }
     rtkClickID?: string
+    trackBigoEvent?: (eventName: string, params?: Record<string, string>) => boolean
+    bgdataLayer?: any[]
   }
 }

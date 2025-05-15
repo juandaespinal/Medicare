@@ -38,12 +38,12 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
 
   // Track Bigo event with error handling
   const trackBigoEvent = useCallback(
-    (eventId: string) => {
+    (eventId: string, additionalParams: Record<string, string> = {}) => {
       try {
         // Only track on /newbigo path if option is enabled
         if (!isNewbigoPath()) {
           console.log("[Bigo] Not on /newbigo path, skipping tracking")
-          return
+          return Promise.resolve(false)
         }
 
         // Get parameters safely
@@ -52,44 +52,67 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
 
         if (!bbg) {
           console.log("[Bigo] Cannot track: BBG parameter missing")
-          return
+          return Promise.resolve(false)
         }
 
         console.log(`[Bigo] Tracking ${eventId} event`)
         setIsTracking(true)
 
-        // Create and append tracking pixel with error handling
-        try {
-          // Use DOM methods instead of the Image constructor
-          const img = document.createElement("img")
-          const timestamp = Date.now()
-          const url = `https://api.bytegle.site/bigoad/trackingevent?bbg=${encodeURIComponent(bbg)}&pixel_id=${encodeURIComponent(
-            pixelId,
-          )}&event_id=${encodeURIComponent(eventId)}&timestamp_ms=${timestamp}`
+        return new Promise<boolean>((resolve) => {
+          // Create and append tracking pixel with error handling
+          try {
+            // Use DOM methods instead of the Image constructor
+            const img = document.createElement("img")
+            const timestamp = Date.now()
 
-          img.onload = () => {
-            console.log(`[Bigo] ${eventId} tracking complete`)
+            // Build URL with base parameters
+            // IMPORTANT: Use the correct event parameter name (event_id) and format
+            let url = `https://api.bytegle.site/bigoad/trackingevent?bbg=${encodeURIComponent(bbg)}&pixel_id=${encodeURIComponent(
+              pixelId,
+            )}&event_id=${encodeURIComponent(eventId)}&timestamp_ms=${timestamp}`
+
+            // Add any additional parameters
+            Object.entries(additionalParams).forEach(([key, value]) => {
+              url += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+            })
+
+            img.onload = () => {
+              console.log(`[Bigo] ${eventId} tracking complete`)
+              setIsTracking(false)
+              resolve(true)
+            }
+
+            img.onerror = () => {
+              console.log(`[Bigo] ${eventId} tracking error (may be normal)`)
+              setIsTracking(false)
+              resolve(true) // Still resolve as true since this is expected behavior
+            }
+
+            img.src = url
+            img.style.display = "none"
+            document.body.appendChild(img)
+
+            // Set a timeout to resolve the promise in case the image never loads or errors
+            setTimeout(() => {
+              if (isTracking) {
+                console.log(`[Bigo] ${eventId} tracking timeout`)
+                setIsTracking(false)
+                resolve(false)
+              }
+            }, 5000)
+          } catch (imgError) {
+            console.error("[Bigo] Error creating tracking pixel:", imgError)
             setIsTracking(false)
+            resolve(false)
           }
-
-          img.onerror = () => {
-            console.log(`[Bigo] ${eventId} tracking error (may be normal)`)
-            setIsTracking(false)
-          }
-
-          img.src = url
-          img.style.display = "none"
-          document.body.appendChild(img)
-        } catch (imgError) {
-          console.error("[Bigo] Error creating tracking pixel:", imgError)
-          setIsTracking(false)
-        }
+        })
       } catch (error) {
         console.error("[Bigo] Tracking error:", error)
         setIsTracking(false)
+        return Promise.resolve(false)
       }
     },
-    [safeGetParam, isNewbigoPath],
+    [safeGetParam, isNewbigoPath, isTracking],
   )
 
   // Track page view on mount
@@ -107,5 +130,26 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
     }
   }, [safeGetParam, trackBigoEvent, isNewbigoPath])
 
-  return { trackBigoEvent, isTracking }
+  // Track phone consultation
+  const trackPhoneConsultation = useCallback(
+    (phoneNumber: string) => {
+      return trackBigoEvent("phone_consult", { phone_number: phoneNumber })
+    },
+    [trackBigoEvent],
+  )
+
+  // Track button click
+  const trackButtonClick = useCallback(
+    (buttonId: string, buttonData: Record<string, string> = {}) => {
+      return trackBigoEvent("button", { button_id: buttonId, ...buttonData })
+    },
+    [trackBigoEvent],
+  )
+
+  return {
+    trackBigoEvent,
+    trackPhoneConsultation,
+    trackButtonClick,
+    isTracking,
+  }
 }

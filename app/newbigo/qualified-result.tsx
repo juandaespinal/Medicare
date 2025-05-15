@@ -3,6 +3,7 @@
 import type React from "react"
 import { useEffect, useRef, useState, useCallback } from "react"
 import { trackButtonClick, trackPhoneCall, trackConversion } from "@/utils/bigo-tracking"
+import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 
 interface QualifiedResultProps {
   allowanceAmount: string
@@ -10,6 +11,9 @@ interface QualifiedResultProps {
 }
 
 export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimClick }: QualifiedResultProps) {
+  // Get tracking functions from our hook
+  const { trackPhoneConsultation, isTracking: isPixelTracking } = useBigoTracking()
+
   // Default phone number
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
@@ -22,6 +26,9 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
   const callStartTimeRef = useRef<number | null>(null)
   // Minimum call duration to consider it a valid call (in milliseconds)
   const MIN_CALL_DURATION = 10000 // 10 seconds
+
+  // State to track if we're currently tracking
+  const [isTracking, setIsTracking] = useState(false)
 
   // Reference to the button element
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -254,14 +261,32 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     // Prevent event propagation to stop any parent handlers
     e.stopPropagation()
 
+    // Set tracking state
+    setIsTracking(true)
+
     try {
-      // Track button click
+      // 1. Track using our custom hook implementation
+      if (trackPhoneConsultation) {
+        console.log("Tracking phone_consult event via hook")
+        await trackPhoneConsultation(displayPhoneNumber || defaultPhoneNumber)
+      }
+
+      // 2. Track using direct global function if available
+      if (window.trackBigoEvent) {
+        console.log("Tracking phone_consult event via global function")
+        window.trackBigoEvent("phone_consult", {
+          phone_number: displayPhoneNumber || defaultPhoneNumber,
+          allowance_amount: allowanceAmount,
+        })
+      }
+
+      // 3. Track using server-side implementation
+      console.log("Tracking call events via server-side implementation")
       await trackButtonClick("call_now", {
         phone_number: displayPhoneNumber || defaultPhoneNumber,
         allowance_amount: allowanceAmount,
       })
 
-      // Track phone call
       await trackPhoneCall(displayPhoneNumber || defaultPhoneNumber, {
         call_type: "consultation",
         allowance_amount: allowanceAmount,
@@ -275,11 +300,18 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
       // Use the current display phone number
       const phoneToCall = displayPhoneNumber || defaultPhoneNumber
 
-      // Make the call
-      console.log("Initiating call to:", phoneToCall)
-      window.location.href = `tel:${phoneToCall}`
+      // Add a small delay to ensure tracking completes
+      setTimeout(() => {
+        // Clear tracking state
+        setIsTracking(false)
+
+        // Make the call
+        console.log("Initiating call to:", phoneToCall)
+        window.location.href = `tel:${phoneToCall}`
+      }, 300)
     } catch (error) {
       console.error("Error tracking call events:", error)
+      setIsTracking(false)
 
       // Still make the call even if tracking fails
       const phoneToCall = displayPhoneNumber || defaultPhoneNumber
@@ -349,7 +381,8 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
             <button
               ref={buttonRef}
               onClick={handleButtonClick}
-              className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 animate-pulse"
+              disabled={isTracking || isPixelTracking}
+              className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 animate-pulse disabled:opacity-70"
               data-default-number={defaultPhoneNumber}
             >
               <div className="absolute -right-3 -top-3 bg-yellow-400 text-red-700 text-sm font-bold px-2 py-1 rounded-full">
@@ -368,7 +401,7 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
                 >
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                 </svg>
-                <span>CALL NOW</span>
+                <span>{isTracking || isPixelTracking ? "CONNECTING..." : "CALL NOW"}</span>
               </div>
             </button>
           </div>
@@ -406,5 +439,6 @@ declare global {
       q: any[]
       loading?: boolean
     }
+    trackBigoEvent?: (eventName: string, params?: Record<string, string>) => boolean
   }
 }
