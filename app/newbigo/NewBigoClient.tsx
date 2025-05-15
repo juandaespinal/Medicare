@@ -41,7 +41,7 @@ export default function NewBigoClient({
                   
                   const urlParams = new URLSearchParams(window.location.search);
                   const bbg = urlParams.get('bbg') || urlParams.get('_BBG_');
-                  const pixelId = urlParams.get('pixel_id') || urlParams.get('_PIXEL_ID_') || '905533174088800512';
+                  const pixelId = urlParams.get('pixel_id') || urlParams.get('_PIXEL_ID_') || '905553625386523392';
                   
                   if (!bbg) {
                     console.log('[BIGO Direct] Cannot track: BBG parameter missing');

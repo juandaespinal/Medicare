@@ -52,7 +52,7 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
 
         // Get parameters safely
         const bbg = safeGetParam("bbg") || safeGetParam("_BBG_") || ""
-        const pixelId = safeGetParam("pixel_id") || safeGetParam("_PIXEL_ID_") || "905533174088800512"
+        const pixelId = safeGetParam("pixel_id") || safeGetParam("_PIXEL_ID_") || "905553625386523392"
 
         if (!bbg) {
           console.log("[Bigo] Cannot track: BBG parameter missing")

@@ -1,3 +1,4 @@
+// Check if this file contains the pixel ID and update it if needed
 import type React from "react"
 import "../../app/globals.css"
 import type { Metadata } from "next"
