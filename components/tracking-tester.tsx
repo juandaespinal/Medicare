@@ -13,13 +13,42 @@ export default function TrackingTester() {
   const [isDebugEnabled, setIsDebugEnabled] = useState(false)
   const [trackingStatus, setTrackingStatus] = useState({ configured: false, message: "Checking..." })
   const [testResults, setTestResults] = useState<Array<{ name: string; success: boolean; message: string }>>([])
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [pixelId, setPixelId] = useState<string>("")
 
   // Check tracking status on mount
   useEffect(() => {
     checkTrackingStatus()
+    getPixelId()
   }, [])
+
+  // Get pixel ID from the API
+  const getPixelId = async () => {
+    try {
+      const response = await fetch("/api/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: "check_pixel_id",
+          test: true,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      if (data.pixel_id) {
+        setPixelId(data.pixel_id)
+      }
+    } catch (error) {
+      console.error("Error fetching pixel ID:", error)
+    }
+  }
 
   // Check tracking status
   const checkTrackingStatus = async () => {
@@ -120,6 +149,11 @@ export default function TrackingTester() {
                 </span>
               </div>
               <p className="text-xs text-gray-500">{trackingStatus.message}</p>
+              {pixelId && (
+                <p className="text-xs text-gray-500 mt-1">
+                  <strong>Pixel ID:</strong> {pixelId}
+                </p>
+              )}
             </div>
 
             <div className="flex space-x-2 mb-4">
@@ -170,7 +204,7 @@ export default function TrackingTester() {
             <div className="mt-4 text-xs text-gray-500">
               <p>Server-to-server tracking sends events through your server instead of directly from the browser.</p>
               <p className="mt-1">
-                When debug is enabled, click the indicator in the bottom right to see tracking history.
+                Client-side fallback is enabled to ensure tracking continues even if server-side fails.
               </p>
             </div>
           </div>
