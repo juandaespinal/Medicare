@@ -1,7 +1,11 @@
 "use client"
 
 import { useSearchParams } from "next/navigation"
-import { useState, useCallback, useEffect, useRef } from "react"
+import { useState, useCallback, useEffect } from "react"
+
+// Global flag to track if page view has been fired
+// This ensures it's tracked across component remounts
+let globalPageViewFired = false
 
 interface BigoTrackingOptions {
   onlyTrackOnNewbigo?: boolean
@@ -11,7 +15,6 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
   const { onlyTrackOnNewbigo = true } = options
   const searchParams = useSearchParams()
   const [isTracking, setIsTracking] = useState(false)
-  const pageViewFired = useRef(false)
 
   // Safe function to get URL parameters
   const safeGetParam = useCallback(
@@ -56,15 +59,20 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
           return Promise.resolve(false)
         }
 
-        // Prevent duplicate page_view events
-        if (eventId === "page_view" && pageViewFired.current) {
-          console.log("[Bigo] Page view already fired, skipping duplicate")
+        // Prevent duplicate page_view events using the global flag
+        if (eventId === "page_view" && globalPageViewFired) {
+          console.log("[Bigo] Page view already fired globally, skipping duplicate")
           return Promise.resolve(true)
         }
 
         // Mark page_view as fired if this is a page_view event
         if (eventId === "page_view") {
-          pageViewFired.current = true
+          globalPageViewFired = true
+          // Also set the window flag for other scripts
+          if (typeof window !== "undefined") {
+            window._bigoTracking = window._bigoTracking || {}
+            window._bigoTracking.pageViewFired = true
+          }
         }
 
         console.log(`[Bigo] Tracking ${eventId} event`)
@@ -126,19 +134,18 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
     [safeGetParam, isNewbigoPath, isTracking],
   )
 
-  // Track page view on mount - but only once
+  // Track page view on mount - but only once globally
   useEffect(() => {
-    try {
-      // Skip if not on newbigo path or if page view already fired
-      if (!isNewbigoPath() || pageViewFired.current) return
+    // Skip if not on newbigo path or if page view already fired globally
+    if (!isNewbigoPath() || globalPageViewFired) {
+      console.log("[Bigo] Skipping page view tracking - already fired or not on newbigo path")
+      return
+    }
 
-      const bbg = safeGetParam("bbg") || safeGetParam("_BBG_") || ""
-      if (bbg) {
-        console.log("[Bigo] BBG parameter found, tracking page view")
-        trackBigoEvent("page_view")
-      }
-    } catch (error) {
-      console.error("[Bigo] Page view tracking error:", error)
+    const bbg = safeGetParam("bbg") || safeGetParam("_BBG_") || ""
+    if (bbg) {
+      console.log("[Bigo] BBG parameter found, tracking page view (first time)")
+      trackBigoEvent("page_view")
     }
   }, [safeGetParam, trackBigoEvent, isNewbigoPath])
 

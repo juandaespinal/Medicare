@@ -1,9 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useRef } from "react"
 import TrackingTester from "@/components/tracking-tester"
-import { trackPageView } from "@/utils/bigo-tracking"
 import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 
 export default function NewBigoClient({
@@ -11,54 +9,8 @@ export default function NewBigoClient({
 }: {
   children: React.ReactNode
 }) {
-  // Initialize BIGO pixel tracking
-  const { trackBigoEvent } = useBigoTracking()
-  const pageViewTracked = useRef(false)
-
-  // Track page view when the component mounts - but only once
-  useEffect(() => {
-    // Skip if already tracked
-    if (pageViewTracked.current) return
-    pageViewTracked.current = true
-
-    // Track page view on mount
-    const trackInitialPageView = async () => {
-      try {
-        console.log("Tracking initial page view via server-to-server")
-        await trackPageView("initial_page_view")
-      } catch (error) {
-        console.error("Error tracking initial page view:", error)
-      }
-    }
-
-    trackInitialPageView()
-
-    // Track page view when visibility changes - but only if the page was hidden for a significant time
-    let lastHiddenTime = 0
-    const MIN_HIDDEN_TIME = 30000 // 30 seconds
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        lastHiddenTime = Date.now()
-      } else if (document.visibilityState === "visible" && lastHiddenTime > 0) {
-        const hiddenDuration = Date.now() - lastHiddenTime
-
-        // Only track if the page was hidden for more than MIN_HIDDEN_TIME
-        if (hiddenDuration > MIN_HIDDEN_TIME) {
-          console.log(`Page was hidden for ${hiddenDuration}ms, tracking visibility change page view`)
-          trackPageView("visibility_change")
-        } else {
-          console.log(`Page was hidden for only ${hiddenDuration}ms, not tracking visibility change`)
-        }
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-    }
-  }, [])
+  // Initialize BIGO pixel tracking - this will handle page view tracking once
+  useBigoTracking()
 
   // Determine if we're in development mode
   const isDevelopment = process.env.NODE_ENV === "development"
@@ -69,7 +21,7 @@ export default function NewBigoClient({
         {/* RedTrack Tracking Script - Positioned at the top for priority loading */}
         <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
 
-        {/* BIGO Tracking Script */}
+        {/* BIGO Tracking Script - with global page view prevention */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -81,6 +33,12 @@ export default function NewBigoClient({
               // Helper function to track BIGO events directly
               window.trackBigoEvent = function(eventName, params) {
                 try {
+                  // Check if page view already fired globally
+                  if (eventName === 'page_view' && window._bigoTracking.pageViewFired) {
+                    console.log('[BIGO Direct] Page view already fired, skipping duplicate');
+                    return true;
+                  }
+                  
                   const urlParams = new URLSearchParams(window.location.search);
                   const bbg = urlParams.get('bbg') || urlParams.get('_BBG_');
                   const pixelId = urlParams.get('pixel_id') || urlParams.get('_PIXEL_ID_') || '905533174088800512';
@@ -88,12 +46,6 @@ export default function NewBigoClient({
                   if (!bbg) {
                     console.log('[BIGO Direct] Cannot track: BBG parameter missing');
                     return false;
-                  }
-                  
-                  // Prevent duplicate page_view events
-                  if (eventName === 'page_view' && window._bigoTracking.pageViewFired) {
-                    console.log('[BIGO Direct] Page view already fired, skipping duplicate');
-                    return true;
                   }
                   
                   // Mark page_view as fired if this is a page_view event
@@ -139,6 +91,8 @@ export default function NewBigoClient({
                   return false;
                 }
               };
+              
+              // DO NOT automatically track page view here - let the React hook handle it
             `,
           }}
         />
@@ -217,5 +171,6 @@ declare global {
     _bigoTracking?: {
       pageViewFired: boolean
     }
+    callStartTime?: number
   }
 }
