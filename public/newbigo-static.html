@@ -9,8 +9,36 @@
 window.bgdataLayer = window.bgdataLayer || [];
 function bge(){bgdataLayer.push(arguments);}
 bge('init', "905552102262610176");
+
+// Explicitly fire page view event immediately after initialization
+bge('event', 'page_view');
+
+// Also fire it again after a short delay to ensure it's captured
+setTimeout(function() {
+  console.log("Firing delayed BIGO page view event from static HTML");
+  if(window.bge) window.bge('event', 'page_view');
+}, 1000);
     </script>
     <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176"></script>
+    
+    <!-- Debug script to verify BIGO is loaded and firing events -->
+    <script>
+      // Check if BIGO is properly loaded
+      setTimeout(function() {
+        if (window.bge && typeof window.bge === 'function') {
+          console.log("BIGO tracking is properly initialized in static HTML");
+          // Fire another test event
+          try {
+            window.bge('event', 'page_loaded');
+            console.log("Successfully fired 'page_loaded' event");
+          } catch (e) {
+            console.error("Error firing test event:", e);
+          }
+        } else {
+          console.error("BIGO tracking is not properly initialized in static HTML");
+        }
+      }, 2000);
+    </script>
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -77,7 +105,7 @@ bge('init', "905552102262610176");
             <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
             <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
             <div class="text-center">
-                <a href="/newbigo" class="btn">Go to Main Site</a>
+                <a href="/newbigo" class="btn" onclick="if(window.bge){window.bge('event','click',{button:'go_to_main_site'});return true;}">Go to Main Site</a>
             </div>
         </div>
     </div>
@@ -94,6 +122,35 @@ bge('init', "905552102262610176");
                 console.log("rtkcid not defined yet");
             }
         }, 500);
+    </script>
+    
+    <!-- Additional BIGO tracking verification and page_view event firing -->
+    <script>
+        // Fire page_view event when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded in static HTML, firing page_view event");
+            if (window.bge && typeof window.bge === 'function') {
+                try {
+                    window.bge('event', 'page_view');
+                    console.log("Successfully fired 'page_view' event on DOMContentLoaded in static HTML");
+                } catch (e) {
+                    console.error("Error firing page_view event:", e);
+                }
+            }
+        });
+        
+        // Also fire on window load event as a fallback
+        window.addEventListener('load', function() {
+            console.log("Window fully loaded in static HTML, firing page_view event");
+            if (window.bge && typeof window.bge === 'function') {
+                try {
+                    window.bge('event', 'page_view');
+                    console.log("Successfully fired 'page_view' event on window load in static HTML");
+                } catch (e) {
+                    console.error("Error firing page_view event on window load:", e);
+                }
+            }
+        });
     </script>
 </body>
 </html>

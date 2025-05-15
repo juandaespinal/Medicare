@@ -25,6 +25,38 @@ export default function NewBigoLandingPage() {
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
 
+  // Fire BIGO page_view event when the component mounts
+  useEffect(() => {
+    console.log("NewBigoLandingPage component mounted, firing page_view event")
+
+    // Function to fire BIGO page_view event
+    const fireBigoPageView = () => {
+      if (window.bge && typeof window.bge === "function") {
+        try {
+          window.bge("event", "page_view")
+          console.log("Successfully fired 'page_view' event from page component")
+          return true
+        } catch (e) {
+          console.error("Error firing page_view event from page component:", e)
+          return false
+        }
+      } else {
+        console.warn("BIGO tracking not available in page component")
+        return false
+      }
+    }
+
+    // Try to fire immediately
+    const success = fireBigoPageView()
+
+    // If not successful, try again after a delay
+    if (!success) {
+      setTimeout(() => {
+        fireBigoPageView()
+      }, 2000)
+    }
+  }, [])
+
   useEffect(() => {
     // Get amount parameter from URL
     const amountParam = searchParams.get("amount")

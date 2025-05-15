@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 
 interface QualifiedResultProps {
   allowanceAmount: string
@@ -12,6 +12,15 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
   // Default phone number
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
+
+  // State to track if a call has been made
+  const [callMade, setCallMade] = useState(false)
+  // State to track if the user has returned from a call
+  const [returnedFromCall, setReturnedFromCall] = useState(false)
+  // Ref to store the time when the call was initiated
+  const callStartTimeRef = useRef<number | null>(null)
+  // Minimum call duration to consider it a valid call (in milliseconds)
+  const MIN_CALL_DURATION = 10000 // 10 seconds
 
   // Reference to the button element
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -58,6 +67,32 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     // If we can't format it, return the original
     return phone
   }
+
+  // Function to track when the page becomes visible again (user returns from call)
+  const handleVisibilityChange = useCallback(() => {
+    if (document.visibilityState === "visible" && callMade && callStartTimeRef.current) {
+      const callDuration = Date.now() - callStartTimeRef.current
+
+      // Only consider it a completed call if the duration is longer than our minimum
+      if (callDuration >= MIN_CALL_DURATION) {
+        console.log(`User returned from call after ${callDuration}ms`)
+        setReturnedFromCall(true)
+
+        // Fire the "Place an Order" event
+        try {
+          if (window.bge) {
+            console.log("Firing 'Place an Order' BIGO event")
+            window.bge("event", "ec_order", {
+              value: 1,
+              currency: "USD",
+            })
+          }
+        } catch (error) {
+          console.error("Error firing BIGO event:", error)
+        }
+      }
+    }
+  }, [callMade])
 
   // Effect to handle phone number updates from Ringba
   useEffect(() => {
@@ -204,6 +239,17 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     }
   }, [defaultPhoneNumber])
 
+  // Set up visibility change listener to detect when user returns from call
+  useEffect(() => {
+    // Add visibility change listener
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    // Clean up
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [handleVisibilityChange])
+
   // Handle button click
   const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
@@ -211,16 +257,13 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     // Prevent event propagation to stop any parent handlers
     e.stopPropagation()
 
-    // Temporarily disable BIGO tracking before making the call
-    const originalBge = window.bge
-    const originalBgDataLayer = window.bgdataLayer
+    // Set call made state and store the start time
+    setCallMade(true)
+    callStartTimeRef.current = Date.now()
+    console.log("Call initiated at:", new Date(callStartTimeRef.current).toISOString())
 
-    // Replace BIGO tracking functions with empty functions
-    window.bge = () => {
-      console.log("BIGO tracking call prevented")
-      return
-    }
-    window.bgdataLayer = []
+    // Don't disable BIGO tracking anymore - we want to track the initial click
+    // We'll fire the "Place an Order" event when they return from the call
 
     // Use the current display phone number
     const phoneToCall = displayPhoneNumber || defaultPhoneNumber
@@ -228,12 +271,6 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     // Make the call
     console.log("Initiating call to:", phoneToCall)
     window.location.href = `tel:${phoneToCall}`
-
-    // Restore BIGO tracking after a short delay
-    setTimeout(() => {
-      window.bge = originalBge
-      window.bgdataLayer = originalBgDataLayer
-    }, 500)
   }
 
   return (
