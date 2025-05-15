@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useEffect } from "react"
+import TrackingTester from "@/components/tracking-tester"
 
 export default function NewBigoClient({
   children,
@@ -55,6 +56,9 @@ export default function NewBigoClient({
     }
   }, [])
 
+  // Determine if we're in development mode
+  const isDevelopment = process.env.NODE_ENV === "development"
+
   return (
     <html lang="en">
       <head>
@@ -92,6 +96,9 @@ export default function NewBigoClient({
       </head>
       <body>
         {children}
+
+        {/* Include the tracking tester in development mode */}
+        {isDevelopment && <TrackingTester />}
 
         {/* Additional scripts at the end of body */}
         <script
