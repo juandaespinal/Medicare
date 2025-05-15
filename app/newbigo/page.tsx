@@ -11,7 +11,7 @@ import NewBigoQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
-import { trackPageView, trackButtonClick } from "@/utils/tracking"
+import { trackPageView, trackButtonClick } from "@/utils/bigo-tracking"
 
 export default function NewBigoLandingPage() {
   const searchParams = useSearchParams()
@@ -39,7 +39,7 @@ export default function NewBigoLandingPage() {
   // Track step changes
   useEffect(() => {
     if (currentStep !== "initial-content") {
-      trackButtonClick("navigation", "step_change", { step: currentStep })
+      trackButtonClick("step_change", { step: currentStep })
     }
   }, [currentStep])
 
@@ -95,6 +95,9 @@ export default function NewBigoLandingPage() {
 
   // Navigation handlers
   const handleInitialClaim = () => {
+    // Track button click
+    trackButtonClick("claim_now", { step: "initial", allowance_amount: allowanceAmount })
+
     // Play the audio when the first "Claim Now" button is clicked
     playAudio(claimAudioRef)
 
@@ -104,6 +107,9 @@ export default function NewBigoLandingPage() {
 
   // Handle age selection
   const handleAgeSelection = () => {
+    // Track button click
+    trackButtonClick("age_selection", { step: "age_question" })
+
     playAudio(ageSelectionAudioRef)
 
     // After age selection, proceed to Medicare question
@@ -113,6 +119,9 @@ export default function NewBigoLandingPage() {
   }
 
   const handleMedicareSelection = (option: string) => {
+    // Track button click
+    trackButtonClick("medicare_selection", { step: "medicare_question", selection: option })
+
     if (option === "Yes") {
       // User qualifies - add UTM parameter
       addQualifiedParameter()
@@ -132,11 +141,17 @@ export default function NewBigoLandingPage() {
   }
 
   const handleFinalClaim = () => {
+    // Track button click
+    trackButtonClick("final_claim", { step: "qualified_result" })
+
     alert("Thank you! A Medicare benefits specialist will contact you shortly.")
     setCurrentStep("initial-content")
   }
 
   const handleExploreOtherBenefits = () => {
+    // Track button click
+    trackButtonClick("explore_other_benefits", { step: "not_qualified_result" })
+
     setCurrentStep("initial-content")
   }
 

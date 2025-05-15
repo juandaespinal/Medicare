@@ -2,22 +2,49 @@
 
 import type React from "react"
 import { useEffect } from "react"
-import { trackPageView } from "@/utils/tracking"
 
 export default function NewBigoClient({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Track page view when the component mounts
+  // Initialize BIGO tracking when the component mounts
   useEffect(() => {
-    // Send page view event via server-side API
-    trackPageView("newbigo_landing")
+    // Check if BIGO is already initialized
+    if (!window.bgdataLayer) {
+      console.log("Initializing BIGO tracking")
 
-    // Also send it on visibility change (when user returns to the page)
+      // Create bgdataLayer array
+      window.bgdataLayer = window.bgdataLayer || []
+
+      // Define bge function
+      window.bge = () => {
+        window.bgdataLayer.push(arguments)
+      }
+
+      // Initialize with pixel ID
+      window.bge("init", "905552102262610176")
+
+      // Load the BIGO script
+      const script = document.createElement("script")
+      script.async = true
+      script.src = "https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176"
+      document.head.appendChild(script)
+
+      // Track page view
+      setTimeout(() => {
+        if (window.bge) {
+          console.log("Sending page_view event to BIGO")
+          window.bge("event", "page_view")
+        }
+      }, 1000)
+    }
+
+    // Track page view when visibility changes
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        trackPageView("newbigo_visibility_change")
+      if (document.visibilityState === "visible" && window.bge) {
+        console.log("Visibility changed to visible, sending page_view event")
+        window.bge("event", "page_view", { trigger: "visibility_change" })
       }
     }
 
@@ -95,4 +122,22 @@ export default function NewBigoClient({
       </body>
     </html>
   )
+}
+
+// Add TypeScript interface for the global window object
+declare global {
+  interface Window {
+    bgdataLayer?: any[]
+    bge?: any
+    ringba_known_numbers?: Record<string, any>
+    ringbaPhoneNumber?: any
+    defaultRingbaNumber?: string
+    _rgba?: {
+      numbers?: any[]
+      data?: any
+      q: any[]
+      loading?: boolean
+    }
+    rtkClickID?: string
+  }
 }

@@ -4,6 +4,14 @@
   <!-- RedTrack Tracking Script - Positioned at the top for priority loading -->
   <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
   
+  <!-- BIGO Tracking Scripts - using the pixel ID 905552102262610176 -->
+  <script>
+    window.bgdataLayer = window.bgdataLayer || [];
+    function bge(){bgdataLayer.push(arguments);}
+    bge('init', "905552102262610176");
+  </script>
+  <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176"></script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Medicare Grocery Allowance Benefits</title>
@@ -63,41 +71,12 @@
       }
   </style>
   <script>
-  // Server-side tracking function
-  async function trackEvent(eventType, eventData) {
-    try {
-      const response = await fetch('/api/track', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          event: eventType,
-          ...eventData,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API responded with status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log(`Tracking event ${eventType} sent successfully:`, data);
-      return true;
-    } catch (error) {
-      console.error(`Error sending ${eventType} tracking event:`, error);
-      return false;
-    }
-  }
-
   // Track page view when the page loads
   window.addEventListener('load', function() {
-    trackEvent('page_view', {
-      page_name: 'newbigo_static',
-      url: window.location.href,
-      referrer: document.referrer || '',
-      title: document.title || '',
-    });
+    if (window.bge) {
+      console.log("Sending page_view event to BIGO from static page");
+      window.bge('event', 'page_view', { page_type: 'static' });
+    }
   });
   </script>
 </head>
@@ -107,7 +86,7 @@
           <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
           <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
           <div class="text-center">
-              <a href="/newbigo" class="btn" onclick="trackEvent('button', {button_type: 'navigation', button_name: 'go_to_main_site', page: 'static'}); return true;">Go to Main Site</a>
+              <a href="/newbigo" class="btn" onclick="if(window.bge) window.bge('event', 'button_click', {button_name: 'go_to_main_site', page: 'static'}); return true;">Go to Main Site</a>
           </div>
       </div>
   </div>

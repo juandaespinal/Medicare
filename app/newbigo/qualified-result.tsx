@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useEffect, useRef, useState, useCallback } from "react"
-import { trackButtonClick, trackPlaceOrder } from "@/utils/tracking"
+import { trackButtonClick, trackPhoneCall, trackConversion } from "@/utils/bigo-tracking"
 
 interface QualifiedResultProps {
   allowanceAmount: string
@@ -79,10 +79,11 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
         console.log(`User returned from call after ${callDuration}ms`)
         setReturnedFromCall(true)
 
-        // Fire the "Place an Order" event
-        trackPlaceOrder(1, {
+        // Fire the conversion event
+        trackConversion(1, "USD", {
           call_duration: callDuration,
           phone_number: displayPhoneNumber || defaultPhoneNumber,
+          event_type: "call_completed",
         })
       }
     }
@@ -252,8 +253,15 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     e.stopPropagation()
 
     // Track button click
-    trackButtonClick("consultation", "call_now", {
+    trackButtonClick("call_now", {
       phone_number: displayPhoneNumber || defaultPhoneNumber,
+      allowance_amount: allowanceAmount,
+    })
+
+    // Track phone call
+    trackPhoneCall(displayPhoneNumber || defaultPhoneNumber, {
+      call_type: "consultation",
+      allowance_amount: allowanceAmount,
     })
 
     // Set call made state and store the start time
