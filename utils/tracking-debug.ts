@@ -1,5 +1,5 @@
 /**
- * Utility for debugging BIGO tracking events
+ * Utility for debugging server-to-server BIGO tracking events
  */
 
 // Flag to enable/disable debug mode
@@ -11,12 +11,13 @@ const trackingHistory: Array<{
   eventName: string
   eventData: any
   success: boolean
+  serverResponse?: any
 }> = []
 
 // Enable debug mode
 export function enableTrackingDebug() {
   debugMode = true
-  console.log("🔍 BIGO Tracking Debug Mode: ENABLED")
+  console.log("🔍 Server-to-Server BIGO Tracking Debug Mode: ENABLED")
 
   // Add visual indicator to the page
   if (typeof document !== "undefined") {
@@ -33,7 +34,7 @@ export function enableTrackingDebug() {
     debugIndicator.style.fontFamily = "monospace"
     debugIndicator.style.zIndex = "9999"
     debugIndicator.style.cursor = "pointer"
-    debugIndicator.textContent = "🔍 BIGO Debug: ON"
+    debugIndicator.textContent = "🔍 S2S BIGO Debug: ON"
 
     // Add click handler to show tracking history
     debugIndicator.addEventListener("click", showTrackingHistory)
@@ -41,27 +42,41 @@ export function enableTrackingDebug() {
     document.body.appendChild(debugIndicator)
   }
 
-  // Monkey patch the original bge function to log events
-  if (typeof window !== "undefined" && window.bge) {
-    const originalBge = window.bge
+  // Monkey patch the original trackBigoEvent function
+  const originalTrackBigoEvent = window.trackBigoEvent || (() => Promise.resolve(false))
 
-    window.bge = function (...args: any[]) {
-      // Log the event
-      console.log("🔍 BIGO Event:", ...args)
+  window.trackBigoEvent = async (eventName: string, eventData?: any) => {
+    // Log the event
+    console.log("🔍 Server-to-Server BIGO Event:", eventName, eventData || {})
 
-      // Show visual feedback
-      showEventFeedback(args[1] || "unknown", args[2] || {})
+    // Show visual feedback
+    showEventFeedback(eventName, eventData || {})
+
+    try {
+      // Call the original function
+      const result = await originalTrackBigoEvent(eventName, eventData)
 
       // Record in history
       trackingHistory.push({
         timestamp: new Date().toISOString(),
-        eventName: args[1] || "unknown",
-        eventData: args[2] || {},
-        success: true,
+        eventName,
+        eventData: eventData || {},
+        success: !!result,
+        serverResponse: result,
       })
 
-      // Call the original function
-      return originalBge.apply(this, args)
+      return result
+    } catch (error) {
+      // Record error in history
+      trackingHistory.push({
+        timestamp: new Date().toISOString(),
+        eventName,
+        eventData: eventData || {},
+        success: false,
+        serverResponse: { error: (error as Error).message },
+      })
+
+      throw error
     }
   }
 }
@@ -69,7 +84,7 @@ export function enableTrackingDebug() {
 // Disable debug mode
 export function disableTrackingDebug() {
   debugMode = false
-  console.log("🔍 BIGO Tracking Debug Mode: DISABLED")
+  console.log("🔍 Server-to-Server BIGO Tracking Debug Mode: DISABLED")
 
   // Remove visual indicator
   if (typeof document !== "undefined") {
@@ -99,7 +114,7 @@ function showEventFeedback(eventName: string, eventData: any) {
   notification.style.maxWidth = "300px"
   notification.style.wordBreak = "break-word"
   notification.innerHTML = `
-    <div><strong>Event:</strong> ${eventName}</div>
+    <div><strong>S2S Event:</strong> ${eventName}</div>
     <div><strong>Data:</strong> ${JSON.stringify(eventData).substring(0, 100)}${JSON.stringify(eventData).length > 100 ? "..." : ""}</div>
   `
 
@@ -161,7 +176,7 @@ function showTrackingHistory() {
 
   // Add title
   const title = document.createElement("h2")
-  title.textContent = "BIGO Tracking History"
+  title.textContent = "Server-to-Server BIGO Tracking History"
   title.style.marginTop = "0"
   historyPanel.appendChild(title)
 
@@ -187,6 +202,7 @@ function showTrackingHistory() {
         <div><strong>Event:</strong> ${event.eventName}</div>
         <div><strong>Data:</strong> <pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(event.eventData, null, 2)}</pre></div>
         <div><strong>Status:</strong> <span style="color: ${event.success ? "#4caf50" : "#f44336"}">${event.success ? "Success" : "Failed"}</span></div>
+        ${event.serverResponse ? `<div><strong>Response:</strong> <pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(event.serverResponse, null, 2)}</pre></div>` : ""}
       `
 
       list.appendChild(item)
@@ -198,49 +214,84 @@ function showTrackingHistory() {
   document.body.appendChild(historyPanel)
 }
 
-// Check if BIGO tracking is properly initialized
-export function checkBigoTracking(): { initialized: boolean; message: string } {
-  if (typeof window === "undefined") {
-    return { initialized: false, message: "Window object not available (server-side rendering)" }
-  }
-
-  if (!window.bgdataLayer) {
-    return { initialized: false, message: "bgdataLayer not found" }
-  }
-
-  if (!window.bge) {
-    return { initialized: false, message: "bge function not found" }
-  }
-
-  // Check if the BIGO script is loaded
-  const bigoScript = document.querySelector('script[src*="topnotchs.site/ad/events.js"]')
-  if (!bigoScript) {
-    return { initialized: false, message: "BIGO script not found in DOM" }
-  }
-
-  return { initialized: true, message: "BIGO tracking is properly initialized" }
-}
-
-// Test BIGO tracking by sending a test event
-export function testBigoTracking(): boolean {
-  const status = checkBigoTracking()
-
-  if (!status.initialized) {
-    console.error("❌ BIGO Tracking Test Failed:", status.message)
-    return false
-  }
-
+// Check if server-to-server tracking is properly configured
+export async function checkServerToServerTracking(): Promise<{ configured: boolean; message: string }> {
   try {
-    // Send a test event
-    window.bge("event", "test_event", {
-      test_id: `test_${Date.now()}`,
-      timestamp: new Date().toISOString(),
+    // Send a test ping to the server endpoint
+    const response = await fetch("/api/track", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: "s2s_check",
+        test: true,
+        timestamp: Date.now(),
+      }),
     })
 
-    console.log("✅ BIGO Tracking Test: Test event sent successfully")
-    return true
+    if (!response.ok) {
+      return {
+        configured: false,
+        message: `Server endpoint responded with status: ${response.status}`,
+      }
+    }
+
+    const result = await response.json()
+
+    return {
+      configured: result.success,
+      message: result.success
+        ? "Server-to-server tracking is properly configured"
+        : `Server error: ${result.error || "Unknown error"}`,
+    }
   } catch (error) {
-    console.error("❌ BIGO Tracking Test Failed:", error)
+    return {
+      configured: false,
+      message: `Error checking server-to-server tracking: ${(error as Error).message}`,
+    }
+  }
+}
+
+// Test server-to-server tracking by sending a test event
+export async function testServerToServerTracking(): Promise<boolean> {
+  try {
+    const status = await checkServerToServerTracking()
+
+    if (!status.configured) {
+      console.error("❌ Server-to-Server Tracking Test Failed:", status.message)
+      return false
+    }
+
+    // Send a test event
+    const response = await fetch("/api/track", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: "test_event",
+        test_id: `test_${Date.now()}`,
+        timestamp: Date.now(),
+      }),
+    })
+
+    if (!response.ok) {
+      console.error("❌ Server-to-Server Tracking Test Failed:", `API responded with status: ${response.status}`)
+      return false
+    }
+
+    const result = await response.json()
+
+    if (result.success) {
+      console.log("✅ Server-to-Server Tracking Test: Test event sent successfully")
+      return true
+    } else {
+      console.error("❌ Server-to-Server Tracking Test Failed:", result.error || "Unknown error")
+      return false
+    }
+  } catch (error) {
+    console.error("❌ Server-to-Server Tracking Test Failed:", error)
     return false
   }
 }
@@ -248,4 +299,11 @@ export function testBigoTracking(): boolean {
 // Get tracking history
 export function getTrackingHistory() {
   return [...trackingHistory]
+}
+
+// Add TypeScript interface for the global window object
+declare global {
+  interface Window {
+    trackBigoEvent?: (eventName: string, eventData?: any) => Promise<boolean>
+  }
 }

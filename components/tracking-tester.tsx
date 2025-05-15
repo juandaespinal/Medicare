@@ -1,20 +1,33 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { enableTrackingDebug, disableTrackingDebug, checkBigoTracking, testBigoTracking } from "@/utils/tracking-debug"
+import {
+  enableTrackingDebug,
+  disableTrackingDebug,
+  checkServerToServerTracking,
+  testServerToServerTracking,
+} from "@/utils/tracking-debug"
 import { trackPageView, trackButtonClick } from "@/utils/bigo-tracking"
 
 export default function TrackingTester() {
   const [isDebugEnabled, setIsDebugEnabled] = useState(false)
-  const [trackingStatus, setTrackingStatus] = useState({ initialized: false, message: "Checking..." })
+  const [trackingStatus, setTrackingStatus] = useState({ configured: false, message: "Checking..." })
   const [testResults, setTestResults] = useState<Array<{ name: string; success: boolean; message: string }>>([])
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   // Check tracking status on mount
   useEffect(() => {
-    const status = checkBigoTracking()
-    setTrackingStatus(status)
+    checkTrackingStatus()
   }, [])
+
+  // Check tracking status
+  const checkTrackingStatus = async () => {
+    setIsLoading(true)
+    const status = await checkServerToServerTracking()
+    setTrackingStatus(status)
+    setIsLoading(false)
+  }
 
   // Toggle debug mode
   const toggleDebug = () => {
@@ -28,19 +41,20 @@ export default function TrackingTester() {
   }
 
   // Run tracking tests
-  const runTests = () => {
+  const runTests = async () => {
+    setIsLoading(true)
     const results: Array<{ name: string; success: boolean; message: string }> = []
 
-    // Test 1: Check if BIGO is initialized
-    const status = checkBigoTracking()
+    // Test 1: Check if server-to-server tracking is configured
+    const status = await checkServerToServerTracking()
     results.push({
-      name: "BIGO Initialization",
-      success: status.initialized,
+      name: "S2S Configuration",
+      success: status.configured,
       message: status.message,
     })
 
     // Test 2: Send a test event
-    const testEventSuccess = testBigoTracking()
+    const testEventSuccess = await testServerToServerTracking()
     results.push({
       name: "Send Test Event",
       success: testEventSuccess,
@@ -49,7 +63,7 @@ export default function TrackingTester() {
 
     // Test 3: Track page view
     try {
-      const pageViewSuccess = trackPageView("test_page")
+      const pageViewSuccess = await trackPageView("test_page")
       results.push({
         name: "Track Page View",
         success: !!pageViewSuccess,
@@ -65,7 +79,7 @@ export default function TrackingTester() {
 
     // Test 4: Track button click
     try {
-      const buttonClickSuccess = trackButtonClick("test_button", { test_data: "test_value" })
+      const buttonClickSuccess = await trackButtonClick("test_button", { test_data: "test_value" })
       results.push({
         name: "Track Button Click",
         success: !!buttonClickSuccess,
@@ -80,6 +94,7 @@ export default function TrackingTester() {
     }
 
     setTestResults(results)
+    setIsLoading(false)
   }
 
   return (
@@ -89,7 +104,7 @@ export default function TrackingTester() {
           className="bg-blue-600 text-white px-4 py-2 flex justify-between items-center cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
         >
-          <h3 className="text-sm font-medium">BIGO Tracking Tester</h3>
+          <h3 className="text-sm font-medium">S2S BIGO Tracking Tester</h3>
           <span>{isExpanded ? "▼" : "▲"}</span>
         </div>
 
@@ -99,9 +114,9 @@ export default function TrackingTester() {
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Tracking Status:</span>
                 <span
-                  className={`text-xs px-2 py-1 rounded ${trackingStatus.initialized ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+                  className={`text-xs px-2 py-1 rounded ${trackingStatus.configured ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
                 >
-                  {trackingStatus.initialized ? "Initialized" : "Not Initialized"}
+                  {trackingStatus.configured ? "Configured" : "Not Configured"}
                 </span>
               </div>
               <p className="text-xs text-gray-500">{trackingStatus.message}</p>
@@ -111,21 +126,25 @@ export default function TrackingTester() {
               <button
                 onClick={toggleDebug}
                 className={`text-xs px-3 py-1 rounded ${isDebugEnabled ? "bg-red-600 text-white" : "bg-blue-600 text-white"}`}
+                disabled={isLoading}
               >
                 {isDebugEnabled ? "Disable Debug" : "Enable Debug"}
               </button>
 
-              <button onClick={runTests} className="text-xs px-3 py-1 rounded bg-green-600 text-white">
-                Run Tests
+              <button
+                onClick={runTests}
+                className="text-xs px-3 py-1 rounded bg-green-600 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? "Running..." : "Run Tests"}
               </button>
 
               <button
-                onClick={() => {
-                  setTrackingStatus(checkBigoTracking())
-                }}
+                onClick={checkTrackingStatus}
                 className="text-xs px-3 py-1 rounded bg-gray-600 text-white"
+                disabled={isLoading}
               >
-                Refresh Status
+                {isLoading ? "Checking..." : "Refresh Status"}
               </button>
             </div>
 
@@ -149,7 +168,7 @@ export default function TrackingTester() {
             )}
 
             <div className="mt-4 text-xs text-gray-500">
-              <p>Click the debug button to enable visual tracking indicators.</p>
+              <p>Server-to-server tracking sends events through your server instead of directly from the browser.</p>
               <p className="mt-1">
                 When debug is enabled, click the indicator in the bottom right to see tracking history.
               </p>

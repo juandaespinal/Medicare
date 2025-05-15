@@ -84,6 +84,8 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
           call_duration: callDuration,
           phone_number: displayPhoneNumber || defaultPhoneNumber,
           event_type: "call_completed",
+        }).catch((error) => {
+          console.error("Error tracking conversion:", error)
         })
       }
     }
@@ -246,35 +248,43 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
   }, [handleVisibilityChange])
 
   // Handle button click
-  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleButtonClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
 
     // Prevent event propagation to stop any parent handlers
     e.stopPropagation()
 
-    // Track button click
-    trackButtonClick("call_now", {
-      phone_number: displayPhoneNumber || defaultPhoneNumber,
-      allowance_amount: allowanceAmount,
-    })
+    try {
+      // Track button click
+      await trackButtonClick("call_now", {
+        phone_number: displayPhoneNumber || defaultPhoneNumber,
+        allowance_amount: allowanceAmount,
+      })
 
-    // Track phone call
-    trackPhoneCall(displayPhoneNumber || defaultPhoneNumber, {
-      call_type: "consultation",
-      allowance_amount: allowanceAmount,
-    })
+      // Track phone call
+      await trackPhoneCall(displayPhoneNumber || defaultPhoneNumber, {
+        call_type: "consultation",
+        allowance_amount: allowanceAmount,
+      })
 
-    // Set call made state and store the start time
-    setCallMade(true)
-    callStartTimeRef.current = Date.now()
-    console.log("Call initiated at:", new Date(callStartTimeRef.current).toISOString())
+      // Set call made state and store the start time
+      setCallMade(true)
+      callStartTimeRef.current = Date.now()
+      console.log("Call initiated at:", new Date(callStartTimeRef.current).toISOString())
 
-    // Use the current display phone number
-    const phoneToCall = displayPhoneNumber || defaultPhoneNumber
+      // Use the current display phone number
+      const phoneToCall = displayPhoneNumber || defaultPhoneNumber
 
-    // Make the call
-    console.log("Initiating call to:", phoneToCall)
-    window.location.href = `tel:${phoneToCall}`
+      // Make the call
+      console.log("Initiating call to:", phoneToCall)
+      window.location.href = `tel:${phoneToCall}`
+    } catch (error) {
+      console.error("Error tracking call events:", error)
+
+      // Still make the call even if tracking fails
+      const phoneToCall = displayPhoneNumber || defaultPhoneNumber
+      window.location.href = `tel:${phoneToCall}`
+    }
   }
 
   return (
@@ -396,7 +406,5 @@ declare global {
       q: any[]
       loading?: boolean
     }
-    bge?: any
-    bgdataLayer?: any[]
   }
 }

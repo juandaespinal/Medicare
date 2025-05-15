@@ -4,14 +4,6 @@
   <!-- RedTrack Tracking Script - Positioned at the top for priority loading -->
   <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
   
-  <!-- BIGO Tracking Scripts - using the pixel ID 905552102262610176 -->
-  <script>
-    window.bgdataLayer = window.bgdataLayer || [];
-    function bge(){bgdataLayer.push(arguments);}
-    bge('init', "905552102262610176");
-  </script>
-  <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176"></script>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Medicare Grocery Allowance Benefits</title>
@@ -94,17 +86,61 @@
       }
   </style>
   <script>
+  // Server-to-server tracking function
+  async function trackServerEvent(eventName, eventData = {}) {
+    try {
+      // Get client-side data to enhance the event
+      const clientData = {
+        url: window.location.href,
+        referrer: document.referrer || "",
+        user_agent: navigator.userAgent,
+        screen_resolution: `${window.screen.width}x${window.screen.height}`,
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      };
+      
+      // Send the event to our server-side API
+      const response = await fetch("/api/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: eventName,
+          ...clientData,
+          ...eventData,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log(`Server-to-server event ${eventName} sent successfully:`, result);
+        return true;
+      } else {
+        console.error(`Error sending server-to-server event ${eventName}:`, result.error);
+        return false;
+      }
+    } catch (error) {
+      console.error(`Error tracking server-to-server event ${eventName}:`, error);
+      return false;
+    }
+  }
+  
   // Track page view when the page loads
   window.addEventListener('load', function() {
-    if (window.bge) {
-      console.log("Sending page_view event to BIGO from static page");
-      window.bge('event', 'page_view', { page_type: 'static' });
-      
-      // Check for test mode
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('test_mode') === 'true') {
-        enableTestMode();
-      }
+    // Track page view
+    trackServerEvent('page_view', { page_type: 'static' });
+    
+    // Check for test mode
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('test_mode') === 'true') {
+      enableTestMode();
     }
   });
   
@@ -119,29 +155,46 @@
     const debugPanel = document.createElement('div');
     debugPanel.className = 'debug-panel';
     debugPanel.innerHTML = `
-      <div><strong>BIGO Tracking Test Mode</strong></div>
+      <div><strong>Server-to-Server Tracking Test Mode</strong></div>
       <div class="debug-log"></div>
     `;
     document.body.appendChild(debugPanel);
     
-    // Override bge function to log events
-    const originalBge = window.bge;
-    window.bge = function() {
+    // Override trackServerEvent function to log events
+    const originalTrackServerEvent = trackServerEvent;
+    window.trackServerEvent = async function(eventName, eventData = {}) {
       // Log to console
-      console.log("BIGO Event:", ...arguments);
+      console.log("Server-to-Server Event:", eventName, eventData);
       
       // Add to debug log
-      debugLog.push({
+      const logEntry = {
         timestamp: new Date().toISOString(),
-        event: arguments[1] || 'unknown',
-        data: arguments[2] || {}
-      });
+        event: eventName,
+        data: eventData
+      };
+      
+      debugLog.push(logEntry);
       
       // Update debug panel
       updateDebugPanel();
       
-      // Call original function
-      return originalBge.apply(this, arguments);
+      try {
+        // Call original function
+        const result = await originalTrackServerEvent(eventName, eventData);
+        
+        // Update log entry with result
+        logEntry.success = result;
+        updateDebugPanel();
+        
+        return result;
+      } catch (error) {
+        // Update log entry with error
+        logEntry.success = false;
+        logEntry.error = error.message;
+        updateDebugPanel();
+        
+        throw error;
+      }
     };
     
     // Add test buttons
@@ -149,7 +202,7 @@
     const testButtons = document.createElement('div');
     testButtons.className = 'content-box';
     testButtons.innerHTML = `
-      <h2 class="text-center">Test BIGO Tracking</h2>
+      <h2 class="text-center">Test Server-to-Server Tracking</h2>
       <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
         <button id="test-page-view" class="btn" style="background-color: #4CAF50;">Test Page View</button>
         <button id="test-button-click" class="btn" style="background-color: #2196F3;">Test Button Click</button>
@@ -160,15 +213,15 @@
     
     // Add event listeners
     document.getElementById('test-page-view').addEventListener('click', function() {
-      window.bge('event', 'page_view', { test: true, timestamp: Date.now() });
+      trackServerEvent('page_view', { test: true, timestamp: Date.now() });
     });
     
     document.getElementById('test-button-click').addEventListener('click', function() {
-      window.bge('event', 'button_click', { button_name: 'test_button', test: true, timestamp: Date.now() });
+      trackServerEvent('button_click', { button_name: 'test_button', test: true, timestamp: Date.now() });
     });
     
     document.getElementById('test-conversion').addEventListener('click', function() {
-      window.bge('event', 'conversion', { value: 1, currency: 'USD', test: true, timestamp: Date.now() });
+      trackServerEvent('conversion', { value: 1, currency: 'USD', test: true, timestamp: Date.now() });
     });
   }
   
@@ -187,6 +240,7 @@
       logItem.innerHTML = `
         <div><strong>${log.event}</strong> - ${new Date(log.timestamp).toLocaleTimeString()}</div>
         <div style="font-size: 10px;">${JSON.stringify(log.data)}</div>
+        ${log.success !== undefined ? `<div style="color: ${log.success ? '#4CAF50' : '#F44336'}; margin-top: 3px;">${log.success ? 'Success' : 'Failed'}${log.error ? ': ' + log.error : ''}</div>` : ''}
       `;
       debugLogElement.appendChild(logItem);
     });
@@ -199,7 +253,7 @@
           <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
           <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
           <div class="text-center">
-              <a href="/newbigo" class="btn" onclick="if(window.bge) window.bge('event', 'button_click', {button_name: 'go_to_main_site', page: 'static'}); return true;">Go to Main Site</a>
+              <a href="/newbigo" class="btn" onclick="trackServerEvent('button_click', {button_name: 'go_to_main_site', page: 'static'}); return true;">Go to Main Site</a>
           </div>
       </div>
   </div>
