@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { useEffect, useRef, useState, useCallback } from "react"
-import { trackButtonClick, trackPhoneCall, trackConversion } from "@/utils/bigo-tracking"
 
 interface QualifiedResultProps {
   allowanceAmount: string
@@ -79,14 +78,20 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
         console.log(`User returned from call after ${callDuration}ms`)
         setReturnedFromCall(true)
 
-        // Fire the conversion event
-        trackConversion(1, "USD", {
-          call_duration: callDuration,
-          phone_number: displayPhoneNumber || defaultPhoneNumber,
-          event_type: "call_completed",
-        }).catch((error) => {
-          console.error("Error tracking conversion:", error)
-        })
+        // Fire the conversion event using the global BIGO tracking function
+        if (window.trackBigoEvent) {
+          window
+            .trackBigoEvent("Purchase", {
+              call_duration: callDuration,
+              phone_number: displayPhoneNumber || defaultPhoneNumber,
+              event_type: "call_completed",
+              value: 1,
+              currency: "USD",
+            })
+            .catch((error) => {
+              console.error("Error tracking conversion:", error)
+            })
+        }
       }
     }
   }, [callMade, displayPhoneNumber, defaultPhoneNumber])
@@ -255,17 +260,21 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     e.stopPropagation()
 
     try {
-      // Track button click
-      await trackButtonClick("call_now", {
-        phone_number: displayPhoneNumber || defaultPhoneNumber,
-        allowance_amount: allowanceAmount,
-      })
+      // Track button click using the global BIGO tracking function
+      if (window.trackBigoEvent) {
+        await window.trackBigoEvent("Click", {
+          button_name: "call_now",
+          phone_number: displayPhoneNumber || defaultPhoneNumber,
+          allowance_amount: allowanceAmount,
+        })
 
-      // Track phone call
-      await trackPhoneCall(displayPhoneNumber || defaultPhoneNumber, {
-        call_type: "consultation",
-        allowance_amount: allowanceAmount,
-      })
+        // Track phone call
+        await window.trackBigoEvent("Contact", {
+          phone_number: displayPhoneNumber || defaultPhoneNumber,
+          contact_type: "phone",
+          allowance_amount: allowanceAmount,
+        })
+      }
 
       // Set call made state and store the start time
       setCallMade(true)
@@ -406,5 +415,6 @@ declare global {
       q: any[]
       loading?: boolean
     }
+    trackBigoEvent?: (eventName: string, eventData?: Record<string, any>) => Promise<boolean>
   }
 }

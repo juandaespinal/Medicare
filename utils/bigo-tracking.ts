@@ -17,8 +17,8 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       url: window.location.href,
       referrer: document.referrer || "",
       user_agent: navigator.userAgent,
-      screen_resolution: `${window.screen.width}x${window.screen.height}`,
-      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      screen_width: window.screen.width,
+      screen_height: window.screen.height,
       language: navigator.language,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       timestamp: Date.now(),
@@ -30,6 +30,13 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       localStorage.setItem("bigo_client_id", clientData.client_id as string)
     }
 
+    // Try to get click ID from URL parameters
+    const urlParams = new URLSearchParams(window.location.search)
+    const clickId = urlParams.get("click_id") || urlParams.get("clickid") || urlParams.get("bigo_click_id")
+
+    // Try to get RedTrack click ID if available
+    const rtkClickID = (window as any).rtkClickID
+
     // Send the event to our server-side API
     const response = await fetch("/api/track", {
       method: "POST",
@@ -39,6 +46,8 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       body: JSON.stringify({
         event: eventName,
         ...clientData,
+        ...(clickId ? { click_id: clickId } : {}),
+        ...(rtkClickID ? { rtk_click_id: rtkClickID } : {}),
         ...(eventData || {}),
       }),
     })
@@ -60,25 +69,25 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
 
 // Common tracking functions
 export async function trackPageView(pageName?: string) {
-  return trackBigoEvent("page_view", pageName ? { page_name: pageName } : undefined)
+  return trackBigoEvent("PageView", pageName ? { page_name: pageName } : undefined)
 }
 
 export async function trackButtonClick(buttonName: string, buttonData?: Record<string, any>) {
-  return trackBigoEvent("button_click", {
+  return trackBigoEvent("Click", {
     button_name: buttonName,
     ...buttonData,
   })
 }
 
 export async function trackFormSubmit(formName: string, formData?: Record<string, any>) {
-  return trackBigoEvent("form_submit", {
+  return trackBigoEvent("FormSubmit", {
     form_name: formName,
     ...formData,
   })
 }
 
 export async function trackConversion(value?: number, currency = "USD", conversionData?: Record<string, any>) {
-  return trackBigoEvent("conversion", {
+  return trackBigoEvent("Purchase", {
     value: value || 1,
     currency,
     ...conversionData,
@@ -86,8 +95,9 @@ export async function trackConversion(value?: number, currency = "USD", conversi
 }
 
 export async function trackPhoneCall(phoneNumber: string, callData?: Record<string, any>) {
-  return trackBigoEvent("phone_call", {
+  return trackBigoEvent("Contact", {
     phone_number: phoneNumber,
+    contact_type: "phone",
     ...callData,
   })
 }

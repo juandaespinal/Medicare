@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const data = await request.json()
 
-    // Get the BIGO pixel ID from environment or use the default
+    // Get the BIGO pixel ID from environment
     const pixelId = process.env.BIGO_PIXEL_ID
 
     if (!pixelId) {
@@ -19,26 +19,23 @@ export async function POST(request: Request) {
       throw new Error("Event name is required")
     }
 
-    // Prepare the tracking data with additional server-side information
+    // Prepare the tracking data according to BIGO's requirements
     const trackingPayload = {
+      pixel_id: pixelId,
+      event: event,
       ...eventData,
-      timestamp: new Date().toISOString(),
-      event_id: `ev_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-      server_timestamp: Date.now(),
+      timestamp: Date.now(),
     }
 
     console.log(`Server-to-Server BIGO tracking - Event: ${event}, Pixel ID: ${pixelId}`, trackingPayload)
 
-    // Send the event to BIGO's server
-    const response = await fetch(`https://api.topnotchs.site/ad/event?pixel_id=${pixelId}`, {
+    // Send the event to BIGO's server using the correct endpoint from the documentation
+    const response = await fetch("https://api.bytegle.site/bigoad/trackingevent", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        event: event,
-        ...trackingPayload,
-      }),
+      body: JSON.stringify(trackingPayload),
     })
 
     const responseText = await response.text()

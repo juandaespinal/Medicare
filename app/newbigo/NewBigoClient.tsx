@@ -3,32 +3,30 @@
 import type React from "react"
 import { useEffect } from "react"
 import TrackingTester from "@/components/tracking-tester"
-import { trackPageView } from "@/utils/bigo-tracking"
+import { initBigoTracking } from "@/utils/bigo-direct"
 
 export default function NewBigoClient({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Track page view when the component mounts
+  // Initialize BIGO tracking when the component mounts
   useEffect(() => {
-    // Track page view on mount
-    const trackInitialPageView = async () => {
-      try {
-        console.log("Tracking initial page view via server-to-server")
-        await trackPageView("initial_page_view")
-      } catch (error) {
-        console.error("Error tracking initial page view:", error)
-      }
-    }
+    // Get the BIGO pixel ID from the environment variable
+    const pixelId = process.env.NEXT_PUBLIC_BIGO_PIXEL_ID || "905552424104630784"
 
-    trackInitialPageView()
+    // Initialize BIGO tracking
+    const trackBigoEvent = initBigoTracking(pixelId)
 
     // Track page view when visibility changes
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && trackBigoEvent) {
         console.log("Visibility changed to visible, tracking page view")
-        trackPageView("visibility_change")
+        trackBigoEvent("PageView", {
+          url: window.location.href,
+          title: document.title,
+          timestamp: Date.now(),
+        })
       }
     }
 
