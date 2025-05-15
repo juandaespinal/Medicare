@@ -115,9 +115,7 @@ function showEventFeedback(eventName: string, eventData: any) {
   notification.style.wordBreak = "break-word"
   notification.innerHTML = `
     <div><strong>S2S Event:</strong> ${eventName}</div>
-    <div><strong>Data:</strong> ${JSON.stringify(eventData).substring(0, 100)}${
-      JSON.stringify(eventData).length > 100 ? "..." : ""
-    }</div>
+    <div><strong>Data:</strong> ${JSON.stringify(eventData).substring(0, 100)}${JSON.stringify(eventData).length > 100 ? "..." : ""}</div>
   `
 
   document.body.appendChild(notification)
@@ -202,23 +200,9 @@ function showTrackingHistory() {
       item.innerHTML = `
         <div><strong>#${index + 1} - ${time}</strong></div>
         <div><strong>Event:</strong> ${event.eventName}</div>
-        <div><strong>Data:</strong> <pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(
-          event.eventData,
-          null,
-          2,
-        )}</pre></div>
-        <div><strong>Status:</strong> <span style="color: ${
-          event.success ? "#4caf50" : "#f44336"
-        }">${event.success ? "Success" : "Failed"}</span></div>
-        ${
-          event.serverResponse
-            ? `<div><strong>Response:</strong> <pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(
-                event.serverResponse,
-                null,
-                2,
-              )}</pre></div>`
-            : ""
-        }
+        <div><strong>Data:</strong> <pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(event.eventData, null, 2)}</pre></div>
+        <div><strong>Status:</strong> <span style="color: ${event.success ? "#4caf50" : "#f44336"}">${event.success ? "Success" : "Failed"}</span></div>
+        ${event.serverResponse ? `<div><strong>Response:</strong> <pre style="margin: 5px 0; white-space: pre-wrap;">${JSON.stringify(event.serverResponse, null, 2)}</pre></div>` : ""}
       `
 
       list.appendChild(item)
@@ -254,13 +238,6 @@ export async function checkServerToServerTracking(): Promise<{ configured: boole
     }
 
     const result = await response.json()
-
-    if (result.pixel_id === "Not configured") {
-      return {
-        configured: false,
-        message: "BIGO_PIXEL_ID environment variable is not set",
-      }
-    }
 
     return {
       configured: result.success,

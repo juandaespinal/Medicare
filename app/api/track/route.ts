@@ -5,15 +5,6 @@ export async function POST(request: Request) {
   try {
     const data = await request.json()
 
-    // Special case for checking pixel ID - don't send to BIGO
-    if (data.event === "check_pixel_id" || data.event === "s2s_check") {
-      return NextResponse.json({
-        success: true,
-        message: "Pixel ID check successful",
-        pixel_id: process.env.BIGO_PIXEL_ID || "Not configured",
-      })
-    }
-
     // Get the BIGO pixel ID from environment or use the default
     const pixelId = process.env.BIGO_PIXEL_ID
 
@@ -38,14 +29,8 @@ export async function POST(request: Request) {
 
     console.log(`Server-to-Server BIGO tracking - Event: ${event}, Pixel ID: ${pixelId}`, trackingPayload)
 
-    // BIGO API endpoint format: https://api.topnotchs.site/ad/event/pixel_id
-    // Note: The pixel_id is part of the path, not a query parameter
-    const bigoApiUrl = `https://api.topnotchs.site/ad/event/${pixelId}`
-
-    console.log(`Sending event to BIGO API: ${bigoApiUrl}`)
-
     // Send the event to BIGO's server
-    const response = await fetch(bigoApiUrl, {
+    const response = await fetch(`https://api.topnotchs.site/ad/event?pixel_id=${pixelId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,7 +64,6 @@ export async function POST(request: Request) {
       data: responseData,
       event: event,
       timestamp: new Date().toISOString(),
-      pixel_id: pixelId,
     })
   } catch (error) {
     console.error("Error sending tracking event to BIGO:", error)

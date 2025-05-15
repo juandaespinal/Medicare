@@ -1,5 +1,5 @@
 /**
- * Utility functions for server-to-server BIGO tracking with client-side fallback
+ * Utility functions for server-to-server BIGO tracking
  */
 
 // Function to track events with BIGO via server-to-server
@@ -22,7 +22,12 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       language: navigator.language,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       timestamp: Date.now(),
-      client_id: getOrCreateClientId(),
+      client_id: localStorage.getItem("bigo_client_id") || `client_${Math.random().toString(36).substring(2, 15)}`,
+    }
+
+    // Store client ID for future use
+    if (!localStorage.getItem("bigo_client_id")) {
+      localStorage.setItem("bigo_client_id", clientData.client_id as string)
     }
 
     // Send the event to our server-side API
@@ -38,10 +43,6 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       }),
     })
 
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`)
-    }
-
     const result = await response.json()
 
     if (result.success) {
@@ -49,71 +50,12 @@ export async function trackBigoEvent(eventName: string, eventData?: Record<strin
       return true
     } else {
       console.error(`Error sending server-to-server BIGO event ${eventName}:`, result.error)
-
-      // If server-side tracking fails, try client-side fallback
-      return await clientSideFallbackTracking(eventName, { ...clientData, ...(eventData || {}) })
+      return false
     }
   } catch (error) {
     console.error(`Error tracking server-to-server BIGO event ${eventName}:`, error)
-
-    // If server-side tracking fails with an exception, try client-side fallback
-    return await clientSideFallbackTracking(eventName, { ...(eventData || {}) })
-  }
-}
-
-// Helper to get or create a persistent client ID
-function getOrCreateClientId(): string {
-  try {
-    let clientId = localStorage.getItem("bigo_client_id")
-
-    if (!clientId) {
-      clientId = `client_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`
-      localStorage.setItem("bigo_client_id", clientId)
-    }
-
-    return clientId
-  } catch (e) {
-    // Fallback if localStorage is not available
-    return `client_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`
-  }
-}
-
-// Client-side fallback tracking function
-async function clientSideFallbackTracking(eventName: string, eventData?: Record<string, any>): Promise<boolean> {
-  try {
-    console.log(`Attempting client-side fallback tracking for event: ${eventName}`, eventData)
-
-    // Check if BIGO tracking is available
-    if (typeof window.bge !== "function") {
-      console.error("Client-side BIGO tracking not available (bge function not found)")
-      return false
-    }
-
-    // Map our event names to BIGO event names if needed
-    const bigoEventName = mapToBigoEventName(eventName)
-
-    // Send the event directly to BIGO
-    window.bge(bigoEventName, eventData)
-
-    console.log(`Client-side fallback tracking sent for event: ${bigoEventName}`)
-    return true
-  } catch (error) {
-    console.error(`Client-side fallback tracking failed for event ${eventName}:`, error)
     return false
   }
-}
-
-// Map our event names to BIGO event names
-function mapToBigoEventName(eventName: string): string {
-  const eventMap: Record<string, string> = {
-    page_view: "page_view",
-    button_click: "click",
-    form_submit: "form_submit",
-    conversion: "purchase",
-    phone_call: "contact",
-  }
-
-  return eventMap[eventName] || eventName
 }
 
 // Common tracking functions
@@ -148,12 +90,4 @@ export async function trackPhoneCall(phoneNumber: string, callData?: Record<stri
     phone_number: phoneNumber,
     ...callData,
   })
-}
-
-// Add TypeScript interface for the global window object
-declare global {
-  interface Window {
-    bge?: (eventName: string, eventData?: any) => void
-    bgdataLayer?: any[]
-  }
 }
