@@ -1,7 +1,5 @@
 "use client"
 
-import { trackButtonClick } from "@/utils/tracking"
-
 interface AgeQuestionProps {
   onAgeSelect: () => void
 }
@@ -35,19 +33,13 @@ export default function AgeQuestion({ onAgeSelect }: AgeQuestionProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <button
                 className="flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-8 px-4 rounded-lg text-2xl shadow-md transition-all duration-200 hover:shadow-lg border-2 border-blue-300 option-pulse"
-                onClick={(e) => {
-                  trackButtonClick("form", "age_under_65", { age_range: "under_65" })
-                  onAgeSelect()
-                }}
+                onClick={onAgeSelect}
               >
                 <span>Under 65</span>
               </button>
               <button
                 className="flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-8 px-4 rounded-lg text-2xl shadow-md transition-all duration-200 hover:shadow-lg border-2 border-blue-300 option-pulse"
-                onClick={(e) => {
-                  trackButtonClick("form", "age_over_65", { age_range: "over_65" })
-                  onAgeSelect()
-                }}
+                onClick={onAgeSelect}
               >
                 <span>Over 65</span>
               </button>

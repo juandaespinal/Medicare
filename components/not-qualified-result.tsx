@@ -1,7 +1,5 @@
 "use client"
 
-import { trackButtonClick } from "@/utils/tracking"
-
 interface NotQualifiedResultProps {
   onExploreClick: () => void
 }
@@ -25,10 +23,7 @@ export default function NotQualifiedResult({ onExploreClick }: NotQualifiedResul
           </p>
 
           <button
-            onClick={(e) => {
-              trackButtonClick("form", "explore_other_benefits", { result: "not_qualified" })
-              onExploreClick()
-            }}
+            onClick={onExploreClick}
             className="bg-blue-800 hover:bg-blue-900 text-white font-bold py-5 px-8 rounded-md text-lg shadow-lg mt-2"
           >
             Explore Other Benefits

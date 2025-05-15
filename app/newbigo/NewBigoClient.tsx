@@ -1,95 +1,38 @@
 "use client"
 
 import type React from "react"
-import "@/app/globals.css"
+import { useEffect } from "react"
+import { trackPageView } from "@/utils/tracking"
 
 export default function NewBigoClient({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Track page view when the component mounts
+  useEffect(() => {
+    // Send page view event via server-side API
+    trackPageView("newbigo_landing")
+
+    // Also send it on visibility change (when user returns to the page)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        trackPageView("newbigo_visibility_change")
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [])
+
   return (
     <html lang="en">
       <head>
         {/* RedTrack Tracking Script - Positioned at the top for priority loading */}
         <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
-
-        {/* BIGO Tracking Scripts - using the old pixel ID 905552102262610176 */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-// Clear any existing BIGO data to ensure fresh initialization
-window.bgdataLayer = [];
-window.bge = function() {
-  window.bgdataLayer.push(arguments);
-  console.log("BIGO event pushed:", arguments);
-};
-
-// Initialize BIGO with pixel ID
-window.bge('init', "905552102262610176");
-
-// Add a random parameter to prevent caching
-const cacheBuster = Math.random().toString(36).substring(2, 15);
-console.log("BIGO initialized with cache buster:", cacheBuster);
-
-// Explicitly fire page view event immediately after initialization
-window.bge('event', 'page_view', {
-  timestamp: new Date().toISOString(),
-  event_id: 'initial_page_view_' + cacheBuster,
-  url: window.location.href,
-  referrer: document.referrer || "",
-  title: document.title || ""
-});
-
-// Also fire it again after a short delay to ensure it's captured
-setTimeout(function() {
-  console.log("Firing delayed BIGO page view event");
-  if(window.bge) {
-    window.bge('event', 'page_view', {
-      timestamp: new Date().toISOString(),
-      event_id: 'delayed_page_view_' + cacheBuster,
-      url: window.location.href,
-      referrer: document.referrer || "",
-      title: document.title || ""
-    });
-  }
-}, 1000);
-            `,
-          }}
-        />
-
-        {/* Second BG Tracking Script - Add cache buster to prevent caching */}
-        <script
-          async
-          src={`https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176&cb=${Math.random().toString(36).substring(2, 15)}`}
-        ></script>
-
-        {/* Debug script to verify BIGO is loaded and firing events */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-// Check if BIGO is properly loaded
-setTimeout(function() {
-  if (window.bge && typeof window.bge === 'function') {
-    console.log("BIGO tracking is properly initialized");
-    // Fire another test event
-    try {
-      window.bge('event', 'page_loaded', {
-        timestamp: new Date().toISOString(),
-        event_id: 'test_' + Math.random().toString(36).substring(2, 15),
-        url: window.location.href
-      });
-      console.log("Successfully fired 'page_loaded' event");
-    } catch (e) {
-      console.error("Error firing test event:", e);
-    }
-  } else {
-    console.error("BIGO tracking is not properly initialized");
-  }
-}, 2000);
-            `,
-          }}
-        />
 
         {/* Other meta tags and styles */}
         <meta charSet="utf-8" />
@@ -146,121 +89,6 @@ setTimeout(function() {
           dangerouslySetInnerHTML={{
             __html: `
           (function (f, b) { if (!b.__SV) { var e, g, i, h; window.mixpanel = b; b._i = []; b.init = function (e, f, c) { function g(a, d) { var b = d.split("."); 2 == b.length && ((a = a[b[0]]), (d = b[1])); a[d] = function () { a.push([d].concat(Array.prototype.slice.call(arguments, 0))); }; } var a = b; "undefined" !== typeof c ? (a = b[c] = []) : (c = "mixpanel"); a.people = a.people || []; a.toString = function (a) { var d = "mixpanel"; "mixpanel" !== c && (d += "." + c); a || (d += " (stub)"); return d; }; a.people.toString = function () { return a.toString(1) + ".people (stub)"; }; i = "disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split( " "); for (h = 0; h < i.length; h++) g(a, i[h]); var j = "set set_once union unset remove delete".split(" "); a.get_group = function () { function b(c) { d[c] = function () { call2_args = arguments; call2 = [c].concat(Array.prototype.slice.call(call2_args, 0)); a.push([e, call2]); }; } for ( var d = {}, e = ["get_group"].concat( Array.prototype.slice.call(arguments, 0)), c = 0; c < j.length; c++) b(j[c]); return d; }; b._i.push([e, f, c]); }; b.__SV = 1.2; e = f.createElement("script"); e.type = "text/javascript"; e.async = !0; e.src = "undefined" !== typeof MIXPANEL_CUSTOM_LIB_URL ? MIXPANEL_CUSTOM_LIB_URL : "file:" === f.location.protocol && "//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//) ? "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js" : "//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"; g = f.getElementsByTagName("script")[0]; g.parentNode.insertBefore(e, g); } })(document, window.mixpanel || []);
-        `,
-          }}
-        />
-
-        {/* Additional BIGO tracking verification and page_view event firing */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-          // Verify BIGO tracking is working at the end of page load
-          document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM fully loaded, firing page_view event");
-            
-            // Fire page_view event when DOM is fully loaded
-            if (window.bge && typeof window.bge === 'function') {
-              try {
-                window.bge('event', 'page_view', {
-                  timestamp: new Date().toISOString(),
-                  event_id: 'dom_loaded_' + Math.random().toString(36).substring(2, 15),
-                  url: window.location.href,
-                  referrer: document.referrer || "",
-                  title: document.title || ""
-                });
-                console.log("Successfully fired 'page_view' event on DOMContentLoaded");
-              } catch (e) {
-                console.error("Error firing page_view event:", e);
-              }
-            } else {
-              console.error("BIGO tracking not available on DOMContentLoaded");
-              
-              // Try to initialize BIGO again if it's not available
-              window.bgdataLayer = window.bgdataLayer || [];
-              window.bge = window.bge || function(){window.bgdataLayer.push(arguments);};
-              
-              // Try to initialize and fire event
-              try {
-                window.bge('init', "905552102262610176");
-                window.bge('event', 'page_view', {
-                  timestamp: new Date().toISOString(),
-                  event_id: 'reinit_' + Math.random().toString(36).substring(2, 15),
-                  url: window.location.href
-                });
-                console.log("Re-initialized BIGO and fired page_view event");
-              } catch (e) {
-                console.error("Error re-initializing BIGO:", e);
-              }
-            }
-          });
-          
-          // Also fire on window load event as a fallback
-          window.addEventListener('load', function() {
-            console.log("Window fully loaded, firing page_view event");
-            if (window.bge && typeof window.bge === 'function') {
-              try {
-                window.bge('event', 'page_view', {
-                  timestamp: new Date().toISOString(),
-                  event_id: 'window_load_' + Math.random().toString(36).substring(2, 15),
-                  url: window.location.href,
-                  referrer: document.referrer || "",
-                  title: document.title || ""
-                });
-                console.log("Successfully fired 'page_view' event on window load");
-              } catch (e) {
-                console.error("Error firing page_view event on window load:", e);
-              }
-            }
-          });
-        `,
-          }}
-        />
-
-        {/* Add a debug button to manually fire events for testing */}
-        <div style={{ position: "fixed", bottom: "10px", right: "10px", zIndex: 9999, display: "none" }}>
-          <button
-            id="debug-fire-event"
-            style={{
-              padding: "8px 12px",
-              backgroundColor: "#f00",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-            onClick={() => {
-              if (window.bge) {
-                const eventId = "manual_" + Math.random().toString(36).substring(2, 15)
-                window.bge("event", "button", {
-                  button_type: "debug",
-                  button_name: "test_button",
-                  event_id: eventId,
-                  timestamp: new Date().toISOString(),
-                  manual: true,
-                })
-                console.log("Manually fired test event with ID:", eventId)
-                alert("Test event fired! Check console for details.")
-              } else {
-                alert("BIGO tracking not available!")
-              }
-            }}
-          >
-            Fire Test Event
-          </button>
-        </div>
-
-        {/* Script to enable debug button with keyboard shortcut (Ctrl+Shift+D) */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-          document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-              const debugButton = document.getElementById('debug-fire-event');
-              if (debugButton) {
-                debugButton.style.display = debugButton.style.display === 'none' ? 'block' : 'none';
-              }
-            }
-          });
         `,
           }}
         />

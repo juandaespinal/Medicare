@@ -1,121 +1,58 @@
 /**
- * Utility functions for tracking events
+ * Utility functions for tracking events using server-side API
  */
 
-// Function to generate a unique event ID
-function generateEventId() {
-  return `ev_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+// Function to send tracking event to our server-side API
+async function sendTrackingEvent(eventType: string, eventData: Record<string, any>) {
+  try {
+    const response = await fetch("/api/track", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        event: eventType,
+        ...eventData,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API responded with status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    console.log(`Tracking event ${eventType} sent successfully:`, data)
+    return true
+  } catch (error) {
+    console.error(`Error sending ${eventType} tracking event:`, error)
+    return false
+  }
 }
 
-// Function to fire BIGO button click event
+// Function to track button clicks
 export function trackButtonClick(buttonType: string, buttonName: string, additionalData?: Record<string, any>) {
-  if (typeof window !== "undefined" && window.bge && typeof window.bge === "function") {
-    try {
-      const timestamp = new Date().toISOString()
-      const eventId = generateEventId()
-
-      // Fire generic button click event
-      window.bge("event", "button", {
-        button_type: buttonType,
-        button_name: buttonName,
-        event_id: eventId,
-        timestamp: timestamp,
-        ...additionalData,
-      })
-
-      console.log(`BIGO button click tracked: ${buttonType} - ${buttonName}`, {
-        event_id: eventId,
-        timestamp: timestamp,
-        ...additionalData,
-      })
-
-      // Also fire specific event based on button type
-      if (buttonType === "consultation" || buttonType === "call") {
-        window.bge("event", "phone_button", {
-          button_name: buttonName,
-          event_id: `${eventId}_phone`,
-          timestamp: timestamp,
-          ...additionalData,
-        })
-      } else if (buttonType === "form") {
-        window.bge("event", "form_button", {
-          button_name: buttonName,
-          event_id: `${eventId}_form`,
-          timestamp: timestamp,
-          ...additionalData,
-        })
-      }
-
-      return true
-    } catch (e) {
-      console.error("Error tracking button click:", e)
-      return false
-    }
-  } else {
-    console.warn("BIGO tracking not available for button click")
-    return false
-  }
+  return sendTrackingEvent("button", {
+    button_type: buttonType,
+    button_name: buttonName,
+    ...additionalData,
+  })
 }
 
-// Function to fire BIGO place order event
+// Function to track place order events
 export function trackPlaceOrder(orderValue = 1, additionalData?: Record<string, any>) {
-  if (typeof window !== "undefined" && window.bge && typeof window.bge === "function") {
-    try {
-      const timestamp = new Date().toISOString()
-      const eventId = generateEventId()
-
-      window.bge("event", "ec_order", {
-        value: orderValue,
-        currency: "USD",
-        event_id: eventId,
-        timestamp: timestamp,
-        ...additionalData,
-      })
-
-      console.log(`BIGO place order tracked with value: ${orderValue}`, {
-        event_id: eventId,
-        timestamp: timestamp,
-        ...additionalData,
-      })
-      return true
-    } catch (e) {
-      console.error("Error tracking place order:", e)
-      return false
-    }
-  } else {
-    console.warn("BIGO tracking not available for place order")
-    return false
-  }
+  return sendTrackingEvent("ec_order", {
+    value: orderValue,
+    currency: "USD",
+    ...additionalData,
+  })
 }
 
-// Function to track page view (for components that need to trigger it manually)
+// Function to track page views
 export function trackPageView(pageName?: string) {
-  if (typeof window !== "undefined" && window.bge && typeof window.bge === "function") {
-    try {
-      const timestamp = new Date().toISOString()
-      const eventId = generateEventId()
-
-      window.bge("event", "page_view", {
-        event_id: eventId,
-        timestamp: timestamp,
-        ...(pageName ? { page_name: pageName } : {}),
-        url: window.location.href,
-        referrer: document.referrer || "",
-        title: document.title || "",
-      })
-
-      console.log(`BIGO page view tracked${pageName ? ` for ${pageName}` : ""}`, {
-        event_id: eventId,
-        timestamp: timestamp,
-        url: window.location.href,
-      })
-      return true
-    } catch (e) {
-      console.error("Error tracking page view:", e)
-      return false
-    }
-  } else {
-    console.warn("BIGO tracking not available for page view")
-    return false
-  }
+  return sendTrackingEvent("page_view", {
+    ...(pageName ? { page_name: pageName } : {}),
+    url: window.location.href,
+    referrer: document.referrer || "",
+    title: document.title || "",
+  })
 }

@@ -1,7 +1,5 @@
 "use client"
 
-import { trackButtonClick } from "@/utils/tracking"
-
 interface MedicareQuestionProps {
   onMedicareSelect: (option: string) => void
 }
@@ -35,19 +33,13 @@ export default function MedicareQuestion({ onMedicareSelect }: MedicareQuestionP
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <button
                 className="flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-8 px-4 rounded-lg text-2xl shadow-md transition-all duration-200 hover:shadow-lg border-2 border-blue-300 option-pulse"
-                onClick={(e) => {
-                  trackButtonClick("form", "medicare_yes", { medicare_status: "yes" })
-                  onMedicareSelect("Yes")
-                }}
+                onClick={() => onMedicareSelect("Yes")}
               >
                 <span>Yes</span>
               </button>
               <button
                 className="flex flex-col items-center justify-center bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-8 px-4 rounded-lg text-2xl shadow-md transition-all duration-200 hover:shadow-lg border-2 border-blue-300 option-pulse"
-                onClick={(e) => {
-                  trackButtonClick("form", "medicare_no", { medicare_status: "no" })
-                  onMedicareSelect("No")
-                }}
+                onClick={() => onMedicareSelect("No")}
               >
                 <span>No</span>
               </button>

@@ -1,314 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- RedTrack Tracking Script - Positioned at the top for priority loading -->
-    <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
-    
-    <!-- BIGO Tracking Scripts - using the old pixel ID 905552102262610176 -->
-    <script>
-// Clear any existing BIGO data to ensure fresh initialization
-window.bgdataLayer = [];
-window.bge = function() {
-  window.bgdataLayer.push(arguments);
-  console.log("BIGO event pushed:", arguments);
-};
-
-// Initialize BIGO with pixel ID
-window.bge('init', "905552102262610176");
-
-// Add a random parameter to prevent caching
-const cacheBuster = Math.random().toString(36).substring(2, 15);
-console.log("BIGO initialized with cache buster:", cacheBuster);
-
-// Explicitly fire page view event immediately after initialization
-window.bge('event', 'page_view', {
-  timestamp: new Date().toISOString(),
-  event_id: 'initial_page_view_' + cacheBuster,
-  url: window.location.href,
-  referrer: document.referrer || "",
-  title: document.title || ""
-});
-
-// Also fire it again after a short delay to ensure it's captured
-setTimeout(function() {
-  console.log("Firing delayed BIGO page view event from static HTML");
-  if(window.bge) {
-    window.bge('event', 'page_view', {
-      timestamp: new Date().toISOString(),
-      event_id: 'delayed_page_view_' + cacheBuster,
-      url: window.location.href,
-      referrer: document.referrer || "",
-      title: document.title || ""
-    });
-  }
-}, 1000);
-    </script>
-    <script async src="https://api.topnotchs.site/ad/events.js?pixel_id=905552102262610176&cb=nocache_static"></script>
-    
-    <!-- Debug script to verify BIGO is loaded and firing events -->
-    <script>
-      // Check if BIGO is properly loaded
-      setTimeout(function() {
-        if (window.bge && typeof window.bge === 'function') {
-          console.log("BIGO tracking is properly initialized in static HTML");
-          // Fire another test event
-          try {
-            window.bge('event', 'page_loaded', {
-              timestamp: new Date().toISOString(),
-              event_id: 'test_' + Math.random().toString(36).substring(2, 15),
-              url: window.location.href
-            });
-            console.log("Successfully fired 'page_loaded' event");
-          } catch (e) {
-            console.error("Error firing test event:", e);
+  <!-- RedTrack Tracking Script - Positioned at the top for priority loading -->
+  <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medicare Grocery Allowance Benefits</title>
+  
+  <!-- Ringba Number Pool Script -->
+  <script>
+      (function(e,d) {
+          //Ringba.com phone number tracking
+          var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
+          var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
+          e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
+          if (!(e._rgba.loading = !!e._rgba.loading)) {
+              var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
+              sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
+              var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
+              e._rgba.loading = true;
           }
-        } else {
-          console.error("BIGO tracking is not properly initialized in static HTML");
-        }
-      }, 2000);
-    </script>
-    
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medicare Grocery Allowance Benefits</title>
-    
-    <!-- Ringba Number Pool Script -->
-    <script>
-        (function(e,d) {
-            //Ringba.com phone number tracking
-            var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
-            var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
-            e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
-            if (!(e._rgba.loading = !!e._rgba.loading)) {
-                var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
-                sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
-                var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
-                e._rgba.loading = true;
-            }
-            
-            // Store the default number in a global variable for easy access
-            e.defaultRingbaNumber = "+18554690274";
-        })(window,document);
-    </script>
-    
-    <style>
-        /* Basic styling to match the app */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #b91c1c;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .content-box {
-            background-color: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .btn {
-            display: inline-block;
-            background-color: #b91c1c;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 18px;
-            margin-top: 20px;
-        }
-        .text-center {
-            text-align: center;
-        }
-    </style>
-    <script>
-  // Function to generate a unique event ID
-  function generateEventId() {
-    return 'ev_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-  }
-
-  // Tracking utility functions
-  function trackButtonClick(buttonType, buttonName, additionalData) {
-    if (window.bge && typeof window.bge === 'function') {
-      try {
-        const timestamp = new Date().toISOString();
-        const eventId = generateEventId();
-        
-        // Fire generic button click event
-        window.bge('event', 'button', Object.assign({
-          button_type: buttonType,
-          button_name: buttonName,
-          event_id: eventId,
-          timestamp: timestamp
-        }, additionalData || {}));
-        
-        console.log("BIGO button click tracked: " + buttonType + " - " + buttonName, {
-          event_id: eventId,
-          timestamp: timestamp
-        });
-        
-        // Also fire specific event based on button type
-        if (buttonType === 'consultation' || buttonType === 'call') {
-          window.bge('event', 'phone_button', Object.assign({
-            button_name: buttonName,
-            event_id: eventId + '_phone',
-            timestamp: timestamp
-          }, additionalData || {}));
-        } else if (buttonType === 'form') {
-          window.bge('event', 'form_button', Object.assign({
-            button_name: buttonName,
-            event_id: eventId + '_form',
-            timestamp: timestamp
-          }, additionalData || {}));
-        }
-        
-        return true;
-      } catch (e) {
-        console.error('Error tracking button click:', e);
-        return false;
+          
+          // Store the default number in a global variable for easy access
+          e.defaultRingbaNumber = "+18554690274";
+      })(window,document);
+  </script>
+  
+  <style>
+      /* Basic styling to match the app */
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: #b91c1c;
       }
-    } else {
-      console.warn('BIGO tracking not available for button click');
+      .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+      }
+      .content-box {
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .btn {
+          display: inline-block;
+          background-color: #b91c1c;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 6px;
+          text-decoration: none;
+          font-weight: bold;
+          font-size: 18px;
+          margin-top: 20px;
+      }
+      .text-center {
+          text-align: center;
+      }
+  </style>
+  <script>
+  // Server-side tracking function
+  async function trackEvent(eventType, eventData) {
+    try {
+      const response = await fetch('/api/track', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          event: eventType,
+          ...eventData,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(`Tracking event ${eventType} sent successfully:`, data);
+      return true;
+    } catch (error) {
+      console.error(`Error sending ${eventType} tracking event:`, error);
       return false;
     }
   }
 
-  function trackPlaceOrder(orderValue, additionalData) {
-    if (window.bge && typeof window.bge === 'function') {
-      try {
-        const timestamp = new Date().toISOString();
-        const eventId = generateEventId();
-        
-        window.bge('event', 'ec_order', Object.assign({
-          value: orderValue || 1,
-          currency: 'USD',
-          event_id: eventId,
-          timestamp: timestamp
-        }, additionalData || {}));
-        
-        console.log("BIGO place order tracked with value: " + (orderValue || 1), {
-          event_id: eventId,
-          timestamp: timestamp
-        });
-        return true;
-      } catch (e) {
-        console.error('Error tracking place order:', e);
-        return false;
-      }
-    } else {
-      console.warn('BIGO tracking not available for place order');
-      return false;
-    }
-  }
-</script>
+  // Track page view when the page loads
+  window.addEventListener('load', function() {
+    trackEvent('page_view', {
+      page_name: 'newbigo_static',
+      url: window.location.href,
+      referrer: document.referrer || '',
+      title: document.title || '',
+    });
+  });
+  </script>
 </head>
 <body>
-    <div class="container">
-        <div class="content-box">
-            <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
-            <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
-            <div class="text-center">
-                <a href="/newbigo" class="btn" onclick="trackButtonClick('navigation', 'go_to_main_site', {page: 'static', timestamp: new Date().toISOString(), event_id: 'static_' + Math.random().toString(36).substring(2, 15)}); return true;">Go to Main Site</a>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Additional scripts at the end of body -->
-    <script>
-        (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", track_attempted: "yes" });
-        var intervalId = setInterval(() => {
-            if (window.rtkClickID != undefined) {
-                (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", clickid: window.rtkClickID });
-                console.log("Just ran the rtkClickID script to add Ringba tags: ", window.rtkClickID);
-                clearInterval(intervalId);
-            } else {
-                console.log("rtkcid not defined yet");
-            }
-        }, 500);
-    </script>
-    
-    <!-- Additional BIGO tracking verification and page_view event firing -->
-    <script>
-        // Fire page_view event when DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM fully loaded in static HTML, firing page_view event");
-            if (window.bge && typeof window.bge === 'function') {
-                try {
-                    window.bge('event', 'page_view', {
-                        timestamp: new Date().toISOString(),
-                        event_id: 'dom_loaded_' + Math.random().toString(36).substring(2, 15),
-                        url: window.location.href,
-                        referrer: document.referrer || "",
-                        title: document.title || ""
-                    });
-                    console.log("Successfully fired 'page_view' event on DOMContentLoaded in static HTML");
-                } catch (e) {
-                    console.error("Error firing page_view event:", e);
-                }
-            }
-        });
-        
-        // Also fire on window load event as a fallback
-        window.addEventListener('load', function() {
-            console.log("Window fully loaded in static HTML, firing page_view event");
-            if (window.bge && typeof window.bge === 'function') {
-                try {
-                    window.bge('event', 'page_view', {
-                        timestamp: new Date().toISOString(),
-                        event_id: 'window_load_' + Math.random().toString(36).substring(2, 15),
-                        url: window.location.href,
-                        referrer: document.referrer || "",
-                        title: document.title || ""
-                    });
-                    console.log("Successfully fired 'page_view' event on window load in static HTML");
-                } catch (e) {
-                    console.error("Error firing page_view event on window load:", e);
-                }
-            }
-        });
-    </script>
-
-    <!-- Add a debug button to manually fire events for testing -->
-    <div style="position: fixed; bottom: 10px; right: 10px; z-index: 9999; display: none;">
-        <button 
-            id="debug-fire-event" 
-            style="padding: 8px 12px; background-color: #f00; color: white; border: none; border-radius: 4px; cursor: pointer;"
-            onclick="
-                if (window.bge) {
-                    const eventId = 'manual_' + Math.random().toString(36).substring(2, 15);
-                    window.bge('event', 'button', {
-                        button_type: 'debug',
-                        button_name: 'test_button',
-                        event_id: eventId,
-                        timestamp: new Date().toISOString(),
-                        manual: true
-                    });
-                    console.log('Manually fired test event with ID:', eventId);
-                    alert('Test event fired! Check console for details.');
-                } else {
-                    alert('BIGO tracking not available!');
-                }
-            "
-        >
-            Fire Test Event
-        </button>
-    </div>
-
-    <!-- Script to enable debug button with keyboard shortcut (Ctrl+Shift+D) -->
-    <script>
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
-                const debugButton = document.getElementById('debug-fire-event');
-                if (debugButton) {
-                    debugButton.style.display = debugButton.style.display === 'none' ? 'block' : 'none';
-                }
-            }
-        });
-    </script>
+  <div class="container">
+      <div class="content-box">
+          <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
+          <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
+          <div class="text-center">
+              <a href="/newbigo" class="btn" onclick="trackEvent('button', {button_type: 'navigation', button_name: 'go_to_main_site', page: 'static'}); return true;">Go to Main Site</a>
+          </div>
+      </div>
+  </div>
+  
+  <!-- Additional scripts at the end of body -->
+  <script>
+      (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", track_attempted: "yes" });
+      var intervalId = setInterval(() => {
+          if (window.rtkClickID != undefined) {
+              (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", clickid: window.rtkClickID });
+              console.log("Just ran the rtkClickID script to add Ringba tags: ", window.rtkClickID);
+              clearInterval(intervalId);
+          } else {
+              console.log("rtkcid not defined yet");
+          }
+      }, 500);
+  </script>
 </body>
 </html>

@@ -11,7 +11,7 @@ import NewBigoQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
-import { trackPageView } from "@/utils/tracking"
+import { trackPageView, trackButtonClick } from "@/utils/tracking"
 
 export default function NewBigoLandingPage() {
   const searchParams = useSearchParams()
@@ -27,57 +27,19 @@ export default function NewBigoLandingPage() {
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
 
-  // Fire BIGO page_view event when the component mounts
+  // Fire page_view event when the component mounts
   useEffect(() => {
     if (pageLoadedRef.current) return
     pageLoadedRef.current = true
 
     console.log("NewBigoLandingPage component mounted, firing page_view event")
-
-    // Function to fire BIGO page_view event
-    const fireBigoPageView = () => {
-      return trackPageView("newbigo_landing")
-    }
-
-    // Try to fire immediately
-    const success = fireBigoPageView()
-
-    // If not successful, try again after a delay
-    if (!success) {
-      setTimeout(() => {
-        fireBigoPageView()
-      }, 2000)
-    }
-
-    // Set up retry mechanism
-    const retryInterval = setInterval(() => {
-      if (window.bge && typeof window.bge === "function") {
-        trackPageView("newbigo_landing_retry")
-        clearInterval(retryInterval)
-      }
-    }, 5000)
-
-    // Clean up
-    return () => {
-      clearInterval(retryInterval)
-    }
+    trackPageView("newbigo_landing_page")
   }, [])
 
   // Track step changes
   useEffect(() => {
     if (currentStep !== "initial-content") {
-      try {
-        if (window.bge && typeof window.bge === "function") {
-          window.bge("event", "step_change", {
-            step: currentStep,
-            timestamp: new Date().toISOString(),
-            event_id: `step_${currentStep}_${Math.random().toString(36).substring(2, 9)}`,
-          })
-          console.log(`Step changed to: ${currentStep}`)
-        }
-      } catch (e) {
-        console.error("Error tracking step change:", e)
-      }
+      trackButtonClick("navigation", "step_change", { step: currentStep })
     }
   }, [currentStep])
 
