@@ -12,6 +12,7 @@ import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
 import { trackPageView, trackButtonClick } from "@/utils/bigo-tracking"
+import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 
 export default function NewBigoLandingPage() {
   const searchParams = useSearchParams()
@@ -20,6 +21,9 @@ export default function NewBigoLandingPage() {
   const [formattedAmount, setFormattedAmount] = useState("")
   const [has2500Amount, setHas2500Amount] = useState(false)
   const pageLoadedRef = useRef(false)
+
+  // Initialize BIGO pixel tracking
+  const { trackBigoEvent, isTracking } = useBigoTracking()
 
   // Audio refs
   const claimAudioRef = useRef<HTMLAudioElement>(null)
@@ -93,33 +97,46 @@ export default function NewBigoLandingPage() {
     }
   }
 
-  // Navigation handlers
+  // Navigation handlers with BIGO tracking
   const handleInitialClaim = () => {
-    // Track button click
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
     trackButtonClick("claim_now", { step: "initial", allowance_amount: allowanceAmount })
 
     // Play the audio when the first "Claim Now" button is clicked
     playAudio(claimAudioRef)
 
-    // Go to age question instead of directly to Medicare question
-    setCurrentStep("age-question")
+    // Short delay to allow tracking to complete
+    setTimeout(() => {
+      // Go to age question instead of directly to Medicare question
+      setCurrentStep("age-question")
+    }, 300)
   }
 
   // Handle age selection
   const handleAgeSelection = () => {
-    // Track button click
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
     trackButtonClick("age_selection", { step: "age_question" })
 
     playAudio(ageSelectionAudioRef)
 
-    // After age selection, proceed to Medicare question
+    // Short delay to allow tracking to complete
     setTimeout(() => {
+      // After age selection, proceed to Medicare question
       setCurrentStep("medicare-question")
-    }, 500)
+    }, 300)
   }
 
   const handleMedicareSelection = (option: string) => {
-    // Track button click
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
     trackButtonClick("medicare_selection", { step: "medicare_question", selection: option })
 
     if (option === "Yes") {
@@ -132,27 +149,43 @@ export default function NewBigoLandingPage() {
         playAudio(congratulationsAudioRef)
       }
 
+      // Short delay to allow tracking to complete
       setTimeout(() => {
         setCurrentStep("qualified-result")
-      }, 500)
+      }, 300)
     } else {
-      setCurrentStep("not-qualified-result")
+      // Short delay to allow tracking to complete
+      setTimeout(() => {
+        setCurrentStep("not-qualified-result")
+      }, 300)
     }
   }
 
   const handleFinalClaim = () => {
-    // Track button click
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
     trackButtonClick("final_claim", { step: "qualified_result" })
 
-    alert("Thank you! A Medicare benefits specialist will contact you shortly.")
-    setCurrentStep("initial-content")
+    // Short delay to allow tracking to complete
+    setTimeout(() => {
+      alert("Thank you! A Medicare benefits specialist will contact you shortly.")
+      setCurrentStep("initial-content")
+    }, 300)
   }
 
   const handleExploreOtherBenefits = () => {
-    // Track button click
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
     trackButtonClick("explore_other_benefits", { step: "not_qualified_result" })
 
-    setCurrentStep("initial-content")
+    // Short delay to allow tracking to complete
+    setTimeout(() => {
+      setCurrentStep("initial-content")
+    }, 300)
   }
 
   return (

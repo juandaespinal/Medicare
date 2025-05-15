@@ -4,12 +4,16 @@ import type React from "react"
 import { useEffect } from "react"
 import TrackingTester from "@/components/tracking-tester"
 import { trackPageView } from "@/utils/bigo-tracking"
+import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 
 export default function NewBigoClient({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Initialize BIGO pixel tracking
+  const { trackBigoEvent } = useBigoTracking()
+
   // Track page view when the component mounts
   useEffect(() => {
     // Track page view on mount
