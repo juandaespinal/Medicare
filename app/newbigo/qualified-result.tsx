@@ -12,7 +12,12 @@ interface QualifiedResultProps {
 
 export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimClick }: QualifiedResultProps) {
   // Get tracking functions from our hook
-  const { trackPhoneConsultation, isTracking: isPixelTracking } = useBigoTracking()
+  const {
+    trackPhoneConsultation,
+    trackFormSubmission,
+    trackPhoneDetail,
+    isTracking: isPixelTracking,
+  } = useBigoTracking()
 
   // Default phone number
   const defaultPhoneNumber = "+18554690274"
@@ -86,6 +91,32 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
         console.log(`User returned from call after ${callDuration}ms`)
         setReturnedFromCall(true)
 
+        // Track phone_detail event
+        if (trackPhoneDetail) {
+          trackPhoneDetail(displayPhoneNumber || defaultPhoneNumber, {
+            call_duration: callDuration.toString(),
+            allowance_amount: allowanceAmount,
+            timestamp: new Date().toISOString(),
+          }).then(() => {
+            console.log("[Bigo] Phone detail tracking complete")
+          })
+        }
+
+        // Track form submission event
+        if (trackFormSubmission) {
+          setTimeout(() => {
+            trackFormSubmission({
+              action: "call_completed",
+              phone_number: displayPhoneNumber || defaultPhoneNumber,
+              call_duration: callDuration.toString(),
+              allowance_amount: allowanceAmount,
+              timestamp: new Date().toISOString(),
+            }).then(() => {
+              console.log("[Bigo] Form submission tracking complete")
+            })
+          }, 300)
+        }
+
         // Fire the conversion event
         trackConversion(1, "USD", {
           call_duration: callDuration,
@@ -96,7 +127,7 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
         })
       }
     }
-  }, [callMade, displayPhoneNumber, defaultPhoneNumber])
+  }, [callMade, displayPhoneNumber, defaultPhoneNumber, allowanceAmount, trackPhoneDetail, trackFormSubmission])
 
   // Effect to handle phone number updates from Ringba
   useEffect(() => {

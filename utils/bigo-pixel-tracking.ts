@@ -138,6 +138,25 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
     [trackBigoEvent],
   )
 
+  // Track form submission
+  const trackFormSubmission = useCallback(
+    (formData: Record<string, string> = {}) => {
+      return trackBigoEvent("form", formData)
+    },
+    [trackBigoEvent],
+  )
+
+  // Track phone detail page browse
+  const trackPhoneDetail = useCallback(
+    (phoneNumber: string, additionalData: Record<string, string> = {}) => {
+      return trackBigoEvent("phone_detail", {
+        phone_number: phoneNumber,
+        ...additionalData,
+      })
+    },
+    [trackBigoEvent],
+  )
+
   // Track button click
   const trackButtonClick = useCallback(
     (buttonId: string, buttonData: Record<string, string> = {}) => {
@@ -149,7 +168,79 @@ export function useBigoTracking(options: BigoTrackingOptions = {}) {
   return {
     trackBigoEvent,
     trackPhoneConsultation,
+    trackFormSubmission,
+    trackPhoneDetail,
     trackButtonClick,
     isTracking,
   }
+}
+
+// Helper function to handle the complete call tracking flow
+export function handleCallTrackingFlow(
+  phoneNumber: string,
+  trackPhoneConsultation: (phoneNumber: string) => Promise<boolean>,
+  trackFormSubmission: (formData: Record<string, string>) => Promise<boolean>,
+  trackPhoneDetail: (phoneNumber: string, additionalData: Record<string, string>) => Promise<boolean>,
+  callback?: () => void,
+) {
+  // First track the phone consultation event
+  trackPhoneConsultation(phoneNumber)
+    .then(() => {
+      console.log("[Bigo] Phone consultation tracking complete")
+
+      // Make the call
+      window.location.href = `tel:${phoneNumber}`
+
+      // Set up visibility change listener to detect when user returns from call
+      const callStartTime = Date.now()
+      const MIN_CALL_DURATION = 10000 // 10 seconds
+
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === "visible") {
+          // Remove the event listener to prevent multiple firings
+          document.removeEventListener("visibilitychange", handleVisibilityChange)
+
+          const callDuration = Date.now() - callStartTime
+
+          // Only consider it a completed call if the duration is longer than our minimum
+          if (callDuration >= MIN_CALL_DURATION) {
+            console.log(`[Bigo] User returned from call after ${callDuration}ms`)
+
+            // Track phone detail event
+            trackPhoneDetail(phoneNumber, {
+              call_duration: callDuration.toString(),
+              timestamp: new Date().toISOString(),
+            }).then(() => {
+              console.log("[Bigo] Phone detail tracking complete")
+
+              // Then track the form submission event
+              setTimeout(() => {
+                trackFormSubmission({
+                  action: "call_completed",
+                  phone_number: phoneNumber,
+                  call_duration: callDuration.toString(),
+                  timestamp: new Date().toISOString(),
+                }).then(() => {
+                  console.log("[Bigo] Form submission tracking complete")
+
+                  // Execute callback if provided
+                  if (callback) {
+                    callback()
+                  }
+                })
+              }, 300)
+            })
+          }
+        }
+      }
+
+      // Add visibility change listener
+      document.addEventListener("visibilitychange", handleVisibilityChange)
+    })
+    .catch((error) => {
+      console.error("[Bigo] Phone consultation tracking error:", error)
+
+      // Still make the call even if tracking fails
+      window.location.href = `tel:${phoneNumber}`
+    })
 }
