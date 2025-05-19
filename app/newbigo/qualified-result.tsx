@@ -81,9 +81,12 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
     return phone
   }
 
+  // Update the component state to include a flag for tracking if form submission has already happened
+  const [formSubmitted, setFormSubmitted] = useState(false)
+
   // Function to track when the page becomes visible again (user returns from call)
   const handleVisibilityChange = useCallback(() => {
-    if (document.visibilityState === "visible" && callMade && callStartTimeRef.current) {
+    if (document.visibilityState === "visible" && callMade && callStartTimeRef.current && !formSubmitted) {
       const callDuration = Date.now() - callStartTimeRef.current
 
       // Only consider it a completed call if the duration is longer than our minimum
@@ -102,8 +105,9 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
           })
         }
 
-        // Track form submission event
-        if (trackFormSubmission) {
+        // Track form submission event - but only if not already submitted
+        if (trackFormSubmission && !formSubmitted) {
+          setFormSubmitted(true) // Set flag to prevent duplicate submissions
           setTimeout(() => {
             trackFormSubmission({
               action: "call_completed",
@@ -127,7 +131,15 @@ export default function NewBigoQualifiedResult({ allowanceAmount, onFinalClaimCl
         })
       }
     }
-  }, [callMade, displayPhoneNumber, defaultPhoneNumber, allowanceAmount, trackPhoneDetail, trackFormSubmission])
+  }, [
+    callMade,
+    displayPhoneNumber,
+    defaultPhoneNumber,
+    allowanceAmount,
+    trackPhoneDetail,
+    trackFormSubmission,
+    formSubmitted,
+  ])
 
   // Effect to handle phone number updates from Ringba
   useEffect(() => {

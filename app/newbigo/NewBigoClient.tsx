@@ -125,6 +125,9 @@ export default function NewBigoClient({
         `,
           }}
         />
+
+        {/* New Ringba Script */}
+        <script src="//b-js.ringba.com/CAefa19b14140b4593baf4f0e1d288e9e8" async></script>
       </head>
       <body>
         {children}
