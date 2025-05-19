@@ -103,30 +103,7 @@ export default function NewBigoClient({
         <title>Medicare Grocery Allowance Benefits</title>
         <meta name="description" content="Claim your Medicare Grocery Allowance benefits today" />
 
-        {/* Ringba Number Pool Script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-          (function(e,d) {
-            //Ringba.com phone number tracking
-            var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
-            var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
-            e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
-            if (!(e._rgba.loading = !!e._rgba.loading)) {
-                var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
-                sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
-                var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
-                e._rgba.loading = true;
-            }
-            
-            // Store the default number in a global variable for easy access
-            e.defaultRingbaNumber = "+18554690274";
-          })(window,document);
-        `,
-          }}
-        />
-
-        {/* New Ringba Script */}
+        {/* Ringba Script - Only using the new script */}
         <script src="//b-js.ringba.com/CAefa19b14140b4593baf4f0e1d288e9e8" async></script>
       </head>
       <body>
