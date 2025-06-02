@@ -17,7 +17,7 @@ export default function DinoMediLayout({
 window.bgdataLayer = window.bgdataLayer || [];
 function bge(){bgdataLayer.push(arguments);}
 bge('init', "905533174088800512");
-        `,
+    `,
           }}
         />
 

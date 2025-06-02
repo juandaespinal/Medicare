@@ -32,13 +32,6 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     return phone
   }
 
-  // Function to extract phone number from a string
-  const extractPhoneNumber = (text: string): string | null => {
-    // Fixed regex pattern - properly escaped parentheses
-    const phoneMatch = text.match(/(\+?1?\s*$$?[\d]{3}$$?\s*[\d]{3}[\s-]*[\d]{4})/)
-    return phoneMatch ? phoneMatch[0] : null
-  }
-
   // Effect to handle phone number updates from Ringba
   useEffect(() => {
     console.log("DmediQualifiedResult component mounted - looking for Ringba number")
@@ -63,11 +56,14 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
         // Check text content
         const textContent = element.textContent?.trim()
         if (textContent && textContent !== formatPhoneNumber(defaultPhoneNumber)) {
-          // Extract phone number from text using the fixed regex
-          const phoneMatch = textContent.match(/(\+?1?\s*$$?[\d]{3}$$?\s*[\d]{3}[\s-]*[\d]{4})/)
-          if (phoneMatch) {
-            foundNumber = phoneMatch[1]
-            console.log("Ringba replaced text content with:", foundNumber)
+          // Simple check for phone number patterns
+          if (textContent.includes("(") && textContent.includes(")") && textContent.includes("-")) {
+            foundNumber = textContent.replace(/[^\d]/g, "")
+            if (foundNumber.length === 10 || foundNumber.length === 11) {
+              console.log("Ringba replaced text content with:", foundNumber)
+            } else {
+              foundNumber = null
+            }
           }
         }
 
