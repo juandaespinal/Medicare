@@ -59,55 +59,22 @@ export default function DinoMediQualifiedResult({ allowanceAmount, onFinalClaimC
     return phone
   }
 
-  // Function to directly update the phone display in the DOM
-  const updatePhoneDisplay = (number: string) => {
-    // Update the displayed phone number
-    const phoneDisplay = document.getElementById("dynamic-phone-number")
-    if (phoneDisplay) {
-      phoneDisplay.textContent = formatPhoneNumber(number)
-    }
-
-    // Store the number on the button for direct access
-    if (buttonRef.current) {
-      buttonRef.current.setAttribute("data-ringba-number", number)
-    }
-  }
-
   // Effect to handle phone number updates from Ringba
   useEffect(() => {
     console.log("DinoMediQualifiedResult component mounted - looking for Ringba number")
 
-    // Listen for the custom Ringba event
-    const handleRingbaNumberAssigned = (event: CustomEvent) => {
-      const number = event.detail.number
-      if (number && number !== defaultPhoneNumber) {
-        console.log("Received Ringba number from custom event:", number)
-        setDisplayPhoneNumber(number)
-        updatePhoneDisplay(number)
-      }
-    }
-
-    document.addEventListener("ringbaNumberAssigned", handleRingbaNumberAssigned as EventListener)
-
-    // Check if there's already a current Ringba number
-    if (window.currentRingbaNumber && window.currentRingbaNumber !== defaultPhoneNumber) {
-      console.log("Found existing Ringba number:", window.currentRingbaNumber)
-      setDisplayPhoneNumber(window.currentRingbaNumber)
-      updatePhoneDisplay(window.currentRingbaNumber)
-    }
-
     // Function to check if Ringba has assigned a number
     const checkRingbaNumber = () => {
       try {
-        // Method 1: Check for _rgba global object and look for assigned numbers
+        // Method 1: Check for _rgba global object (new Ringba script)
         if (window._rgba) {
           console.log("Found _rgba object:", window._rgba)
 
-          // Check if there are any assigned numbers in the _rgba object
+          // Check for numbers property
           if (window._rgba.numbers && window._rgba.numbers.length > 0) {
             const numberValue = window._rgba.numbers[0]
             const number = extractPhoneNumber(numberValue)
-            if (number && number !== defaultPhoneNumber) {
+            if (number) {
               console.log("Found Ringba number from _rgba.numbers:", number)
               setDisplayPhoneNumber(number)
               updatePhoneDisplay(number)
@@ -119,7 +86,7 @@ export default function DinoMediQualifiedResult({ allowanceAmount, onFinalClaimC
           if (window._rgba.data) {
             console.log("Found _rgba.data:", window._rgba.data)
             const number = extractPhoneNumber(window._rgba.data)
-            if (number && number !== defaultPhoneNumber) {
+            if (number) {
               console.log("Found Ringba number from _rgba.data:", number)
               setDisplayPhoneNumber(number)
               updatePhoneDisplay(number)
@@ -128,61 +95,14 @@ export default function DinoMediQualifiedResult({ allowanceAmount, onFinalClaimC
           }
         }
 
-        // Method 2: Check for Ringba-modified DOM elements
-        // Look for any phone numbers that have been dynamically replaced by Ringba
-        const phoneElements = document.querySelectorAll('a[href^="tel:"], .phone-display, [data-ringba-number]')
-        for (const el of phoneElements) {
-          let number = null
-
-          if (el.tagName === "A" && el.getAttribute("href")?.startsWith("tel:")) {
-            // Extract the full tel: URL which might include tracking parameters
-            const telHref = el.getAttribute("href")
-            if (telHref && telHref !== `tel:${defaultPhoneNumber}`) {
-              // Extract just the phone number part (before any query parameters)
-              const phoneMatch = telHref.match(/tel:(\+?[\d\-$$$$\s]+)/)
-              if (phoneMatch) {
-                number = phoneMatch[1]
-                console.log("Found Ringba number in tel: link:", number)
-                setDisplayPhoneNumber(number)
-                updatePhoneDisplay(number)
-                return true
-              }
-            }
-          }
-
-          if (el.hasAttribute("data-ringba-number")) {
-            number = extractPhoneNumber(el.getAttribute("data-ringba-number"))
-            if (number && number !== defaultPhoneNumber) {
-              console.log("Found Ringba number in data attribute:", number)
-              setDisplayPhoneNumber(number)
-              updatePhoneDisplay(number)
-              return true
-            }
-          }
-
-          // Check if the text content has been modified by Ringba
-          const textContent = el.textContent?.trim()
-          if (textContent && textContent !== formatPhoneNumber(defaultPhoneNumber)) {
-            // Try to extract a phone number from the text
-            const phoneMatch = textContent.match(/(\+?1?\s*$$?[\d]{3}$$?\s*[\d]{3}\s*[\d]{4})/)
-            if (phoneMatch) {
-              number = phoneMatch[1]
-              console.log("Found Ringba number in text content:", number)
-              setDisplayPhoneNumber(number)
-              updatePhoneDisplay(number)
-              return true
-            }
-          }
-        }
-
-        // Method 3: Check for global Ringba variables
+        // Method 2: Direct access to ringba_known_numbers
         if (window.ringba_known_numbers && Object.keys(window.ringba_known_numbers).length > 0) {
           console.log("Found ringba_known_numbers:", window.ringba_known_numbers)
           for (const key in window.ringba_known_numbers) {
             if (window.ringba_known_numbers.hasOwnProperty(key)) {
               const numberValue = window.ringba_known_numbers[key]
               const number = extractPhoneNumber(numberValue)
-              if (number && number !== defaultPhoneNumber) {
+              if (number) {
                 console.log("Found Ringba number from known_numbers:", number)
                 setDisplayPhoneNumber(number)
                 updatePhoneDisplay(number)
@@ -192,7 +112,40 @@ export default function DinoMediQualifiedResult({ allowanceAmount, onFinalClaimC
           }
         }
 
-        // Method 4: Check if window has a defaultRingbaNumber that's different from our default
+        // Method 3: Check global ringbaPhoneNumber object
+        if (window.ringbaPhoneNumber) {
+          console.log("Found ringbaPhoneNumber:", window.ringbaPhoneNumber)
+          const number = extractPhoneNumber(window.ringbaPhoneNumber)
+          if (number) {
+            console.log("Found Ringba number from global object:", number)
+            setDisplayPhoneNumber(number)
+            updatePhoneDisplay(number)
+            return true
+          }
+        }
+
+        // Method 4: Look for Ringba-inserted DOM elements
+        const ringbaElements = document.querySelectorAll('[data-ringba-number], .ringba-number, .rnum, a[href^="tel:"]')
+        for (const el of ringbaElements) {
+          let number = null
+
+          if (el.hasAttribute("data-ringba-number")) {
+            number = extractPhoneNumber(el.getAttribute("data-ringba-number"))
+          } else if (el.tagName === "A" && el.getAttribute("href")?.startsWith("tel:")) {
+            number = extractPhoneNumber(el.getAttribute("href")?.replace("tel:", ""))
+          } else {
+            number = extractPhoneNumber(el.textContent?.trim())
+          }
+
+          if (number && number !== defaultPhoneNumber) {
+            console.log("Found Ringba number in DOM:", number)
+            setDisplayPhoneNumber(number)
+            updatePhoneDisplay(number)
+            return true
+          }
+        }
+
+        // Method 5: Check if window has a defaultRingbaNumber that's different from our default
         if (window.defaultRingbaNumber && window.defaultRingbaNumber !== defaultPhoneNumber) {
           const number = extractPhoneNumber(window.defaultRingbaNumber)
           if (number) {
@@ -202,27 +155,25 @@ export default function DinoMediQualifiedResult({ allowanceAmount, onFinalClaimC
             return true
           }
         }
-
-        // Method 5: Look for any links with tel: that have tracking parameters (Ringba signature)
-        const telLinks = document.querySelectorAll('a[href*="tel:"][href*="rtkcid"]')
-        if (telLinks.length > 0) {
-          const telHref = telLinks[0].getAttribute("href")
-          if (telHref) {
-            const phoneMatch = telHref.match(/tel:(\+?[\d]+)/)
-            if (phoneMatch) {
-              const number = phoneMatch[1]
-              console.log("Found Ringba number with tracking parameters:", number)
-              setDisplayPhoneNumber(number)
-              updatePhoneDisplay(number)
-              return true
-            }
-          }
-        }
       } catch (error) {
         console.error("Error checking for Ringba number:", error)
       }
 
       return false
+    }
+
+    // Function to directly update the phone display in the DOM
+    const updatePhoneDisplay = (number: string) => {
+      // Update the displayed phone number
+      const phoneDisplay = document.getElementById("dynamic-phone-number")
+      if (phoneDisplay) {
+        phoneDisplay.textContent = formatPhoneNumber(number)
+      }
+
+      // Store the number on the button for direct access
+      if (buttonRef.current) {
+        buttonRef.current.setAttribute("data-ringba-number", number)
+      }
     }
 
     // Initial check
@@ -246,36 +197,43 @@ export default function DinoMediQualifiedResult({ allowanceAmount, onFinalClaimC
       }
     }, 30000)
 
-    // Clean up the frequent interval, timeout, and event listener when component unmounts
+    // Clean up the frequent interval and timeout when component unmounts
     return () => {
       clearInterval(frequentInterval)
       clearTimeout(timeoutId)
-      document.removeEventListener("ringbaNumberAssigned", handleRingbaNumberAssigned as EventListener)
     }
   }, [defaultPhoneNumber])
 
   // Handle button click
   const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
+
+    // Prevent event propagation to stop any parent handlers
     e.stopPropagation()
 
-    // Check if there's a tel: link with Ringba tracking parameters
-    const telLinks = document.querySelectorAll('a[href*="tel:"][href*="rtkcid"]')
+    // Temporarily disable BIGO tracking before making the call
+    const originalBge = window.bge
+    const originalBgDataLayer = window.bgdataLayer
+
+    // Replace BIGO tracking functions with empty functions
+    window.bge = () => {
+      console.log("BIGO tracking call prevented")
+      return
+    }
+    window.bgdataLayer = []
+
+    // Use the current display phone number
     const phoneToCall = displayPhoneNumber || defaultPhoneNumber
 
-    if (telLinks.length > 0) {
-      // Use the full Ringba URL with tracking parameters
-      const ringbaUrl = telLinks[0].getAttribute("href")
-      if (ringbaUrl) {
-        console.log("Using Ringba URL with tracking:", ringbaUrl)
-        window.location.href = ringbaUrl
-        return
-      }
-    }
-
-    // Fallback to the display phone number
+    // Make the call
     console.log("Initiating call to:", phoneToCall)
     window.location.href = `tel:${phoneToCall}`
+
+    // Restore BIGO tracking after a short delay
+    setTimeout(() => {
+      window.bge = originalBge
+      window.bgdataLayer = originalBgDataLayer
+    }, 500)
   }
 
   return (
@@ -391,14 +349,11 @@ declare global {
     ringba_known_numbers?: Record<string, any>
     ringbaPhoneNumber?: any
     defaultRingbaNumber?: string
-    currentRingbaNumber?: string
-    ringbaNumberAssigned?: (number: string) => void
     _rgba?: {
       numbers?: any[]
       data?: any
       q: any[]
       loading?: boolean
-      callback?: (data: any) => void
     }
     bge?: any
     bgdataLayer?: any[]
