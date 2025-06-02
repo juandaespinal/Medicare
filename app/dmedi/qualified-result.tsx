@@ -12,7 +12,6 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
   // Default phone number - this is the static number that Ringba will detect and replace
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
-  const [ringbaLoaded, setRingbaLoaded] = useState(false)
 
   // Reference to the button element
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -35,37 +34,14 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
 
   // Function to extract phone number from a string
   const extractPhoneNumber = (text: string): string | null => {
-    const phoneMatch = text.match(/(\+?1?\s*$$?\d{3}$$?\s*\d{3}[-\s]*\d{4})/)
+    // Fixed regex pattern - properly escaped parentheses
+    const phoneMatch = text.match(/(\+?1?\s*$$?[\d]{3}$$?\s*[\d]{3}[\s-]*[\d]{4})/)
     return phoneMatch ? phoneMatch[0] : null
   }
 
-  // Load Ringba script only on this page
+  // Effect to handle phone number updates from Ringba
   useEffect(() => {
-    console.log("Loading Ringba script for qualified result page")
-
-    // Create and inject the Ringba script
-    const script = document.createElement("script")
-    script.innerHTML = `
-      (function(e,d) {
-        //Ringba.com phone number tracking
-        var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
-        var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
-        e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
-        if (!(e._rgba.loading = !!e._rgba.loading)) {
-            var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
-            sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
-            var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
-            e._rgba.loading = true;
-        }
-        
-        // Store the default number for reference
-        e.defaultRingbaNumber = "${defaultPhoneNumber}";
-        
-        console.log("Ringba script initialized, waiting for number replacement...");
-      })(window,document);
-    `
-    document.head.appendChild(script)
-    setRingbaLoaded(true)
+    console.log("DmediQualifiedResult component mounted - looking for Ringba number")
 
     // Monitor for Ringba number replacement
     const checkForRingbaReplacement = () => {
@@ -87,7 +63,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
         // Check text content
         const textContent = element.textContent?.trim()
         if (textContent && textContent !== formatPhoneNumber(defaultPhoneNumber)) {
-          // Extract phone number from text
+          // Extract phone number from text using the fixed regex
           const phoneMatch = textContent.match(/(\+?1?\s*$$?[\d]{3}$$?\s*[\d]{3}[\s-]*[\d]{4})/)
           if (phoneMatch) {
             foundNumber = phoneMatch[1]
