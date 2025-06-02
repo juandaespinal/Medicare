@@ -4,7 +4,6 @@ export default function DinoMediLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Use a template literal to create the raw HTML
   return (
     <html lang="en">
       <head>
@@ -33,29 +32,6 @@ bge('init', "905533174088800512");
 
         {/* Include the global CSS */}
         <link rel="stylesheet" href="/globals.css" />
-
-        {/* Ringba Number Pool Script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-          (function(e,d) {
-            //Ringba.com phone number tracking
-            var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
-            var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
-            e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
-            if (!(e._rgba.loading = !!e._rgba.loading)) {
-                var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
-                sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
-                var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
-                e._rgba.loading = true;
-            }
-            
-            // Store the default number in a global variable for easy access
-            e.defaultRingbaNumber = "+18554690274";
-          })(window,document);
-        `,
-          }}
-        />
       </head>
       <body>
         {children}
