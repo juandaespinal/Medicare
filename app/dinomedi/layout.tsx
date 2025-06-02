@@ -34,26 +34,75 @@ bge('init', "905533174088800512");
         {/* Include the global CSS */}
         <link rel="stylesheet" href="/globals.css" />
 
-        {/* Ringba Number Pool Script */}
+        {/* Ringba Number Pool Script with callback */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-          (function(e,d) {
-            //Ringba.com phone number tracking
-            var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
-            var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
-            e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
-            if (!(e._rgba.loading = !!e._rgba.loading)) {
-                var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
-                sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
-                var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
-                e._rgba.loading = true;
+      (function(e,d) {
+        //Ringba.com phone number tracking
+        var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
+        var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
+        e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
+        if (!(e._rgba.loading = !!e._rgba.loading)) {
+            var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
+            sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
+            var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
+            e._rgba.loading = true;
+        }
+        
+        // Store the default number in a global variable for easy access
+        e.defaultRingbaNumber = "+18554690274";
+        
+        // Create a callback system for when Ringba assigns a number
+        e.ringbaNumberAssigned = function(number) {
+          console.log("Ringba number assigned:", number);
+          
+          // Update any phone displays on the page
+          const phoneDisplays = document.querySelectorAll('#dynamic-phone-number, .phone-display');
+          phoneDisplays.forEach(function(display) {
+            if (display.textContent) {
+              // Format the number for display
+              const cleaned = number.replace(/[^0-9]/g, "");
+              let formatted = number;
+              if (cleaned.length === 10) {
+                formatted = "(" + cleaned.slice(0, 3) + ") " + cleaned.slice(3, 6) + "-" + cleaned.slice(6);
+              } else if (cleaned.length === 11 && cleaned[0] === "1") {
+                formatted = "+1 (" + cleaned.slice(1, 4) + ") " + cleaned.slice(4, 7) + "-" + cleaned.slice(7);
+              }
+              display.textContent = formatted;
             }
-            
-            // Store the default number in a global variable for easy access
-            e.defaultRingbaNumber = "+18554690274";
-          })(window,document);
-        `,
+          });
+          
+          // Update any buttons with the new number
+          const buttons = document.querySelectorAll('button[data-default-number]');
+          buttons.forEach(function(button) {
+            button.setAttribute('data-ringba-number', number);
+          });
+          
+          // Store in global variable for React components to access
+          e.currentRingbaNumber = number;
+          
+          // Dispatch a custom event that React components can listen to
+          const event = new CustomEvent('ringbaNumberAssigned', { 
+            detail: { number: number } 
+          });
+          document.dispatchEvent(event);
+        };
+        
+        // Override the default Ringba callback if it exists
+        var originalCallback = e._rgba.callback;
+        e._rgba.callback = function(data) {
+          if (originalCallback) {
+            originalCallback(data);
+          }
+          
+          // Check if a number was assigned
+          if (data && data.number) {
+            e.ringbaNumberAssigned(data.number);
+          }
+        };
+      })(window,document);
+    `,
           }}
         />
       </head>
