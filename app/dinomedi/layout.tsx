@@ -62,7 +62,7 @@ bge('init', "905533174088800512");
           phoneDisplays.forEach(function(display) {
             if (display.textContent) {
               // Format the number for display
-              const cleaned = number.replace(/\\D/g, "");
+              const cleaned = number.replace(/[^0-9]/g, "");
               let formatted = number;
               if (cleaned.length === 10) {
                 formatted = "(" + cleaned.slice(0, 3) + ") " + cleaned.slice(3, 6) + "-" + cleaned.slice(6);
