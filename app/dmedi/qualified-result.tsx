@@ -33,6 +33,12 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     return phone
   }
 
+  // Function to extract phone number from a string
+  const extractPhoneNumber = (text: string): string | null => {
+    const phoneMatch = text.match(/(\+?1?\s*$$?\d{3}$$?\s*\d{3}[-\s]*\d{4})/)
+    return phoneMatch ? phoneMatch[0] : null
+  }
+
   // Load Ringba script only on this page
   useEffect(() => {
     console.log("Loading Ringba script for qualified result page")
