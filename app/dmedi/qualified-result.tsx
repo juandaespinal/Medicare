@@ -12,10 +12,16 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
   // Default phone number - this MUST be the exact number Ringba will detect and replace
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
-  const [ringbaLoaded, setRingbaLoaded] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string[]>([])
 
   // Reference to the button element
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Function to add debug info
+  const addDebugInfo = (info: string) => {
+    console.log("DEBUG:", info)
+    setDebugInfo((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${info}`])
+  }
 
   // Function to format phone number for display
   const formatPhoneNumber = (phone: string): string => {
@@ -35,22 +41,19 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
 
   // Effect to handle Ringba number detection and replacement
   useEffect(() => {
-    console.log("DmediQualifiedResult mounted - initializing Ringba detection")
-    console.log("Default number for Ringba to detect:", defaultPhoneNumber)
+    addDebugInfo("Component mounted, starting Ringba detection")
 
     // Function to check if Ringba has loaded and assigned a number
     const checkRingbaStatus = () => {
-      console.log("Checking Ringba status...")
-      console.log("window._rgba:", window._rgba)
-      console.log("window.ringba_known_numbers:", window.ringba_known_numbers)
+      addDebugInfo("Checking Ringba status...")
 
       // Method 1: Check _rgba object
       if (window._rgba && window._rgba.numbers && window._rgba.numbers.length > 0) {
         const assignedNumber = window._rgba.numbers[0]
-        console.log("Ringba assigned number from _rgba.numbers:", assignedNumber)
+        addDebugInfo(`Found number in _rgba.numbers: ${assignedNumber}`)
         if (assignedNumber && assignedNumber !== defaultPhoneNumber) {
           setDisplayPhoneNumber(assignedNumber)
-          setRingbaLoaded(true)
+          addDebugInfo(`Updated display number to: ${assignedNumber}`)
           return true
         }
       }
@@ -58,10 +61,10 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       // Method 2: Check ringba_known_numbers
       if (window.ringba_known_numbers && Object.keys(window.ringba_known_numbers).length > 0) {
         const numbers = Object.values(window.ringba_known_numbers)
-        console.log("Ringba known numbers:", numbers)
+        addDebugInfo(`Found ringba_known_numbers: ${JSON.stringify(numbers)}`)
         if (numbers.length > 0 && numbers[0] !== defaultPhoneNumber) {
           setDisplayPhoneNumber(numbers[0] as string)
-          setRingbaLoaded(true)
+          addDebugInfo(`Updated display number from known_numbers: ${numbers[0]}`)
           return true
         }
       }
@@ -74,18 +77,15 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
 
         if (href && href.startsWith("tel:") && href !== `tel:${defaultPhoneNumber}`) {
           const newNumber = href.replace("tel:", "")
-          console.log("Ringba replaced tel: link with:", newNumber)
+          addDebugInfo(`Found replaced tel: link: ${newNumber}`)
           setDisplayPhoneNumber(newNumber)
-          setRingbaLoaded(true)
           return true
         }
 
         if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/$$\d{3}$$\s\d{3}-\d{4}/)) {
-          console.log("Ringba replaced text content with:", text)
-          // Extract just the digits for the state
+          addDebugInfo(`Found replaced text content: ${text}`)
           const digitsOnly = text.replace(/\D/g, "")
           setDisplayPhoneNumber(digitsOnly)
-          setRingbaLoaded(true)
           return true
         }
       }
@@ -96,7 +96,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     // Check immediately
     const initialCheck = setTimeout(() => {
       if (!checkRingbaStatus()) {
-        console.log("No Ringba number detected initially, using default")
+        addDebugInfo("No Ringba number detected initially")
       }
     }, 1000)
 
@@ -104,17 +104,14 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     const interval = setInterval(() => {
       if (checkRingbaStatus()) {
         clearInterval(interval)
-        console.log("Ringba number detected, stopping checks")
+        addDebugInfo("Ringba number detected, stopping checks")
       }
     }, 2000)
 
     // Stop checking after 30 seconds
     const timeout = setTimeout(() => {
       clearInterval(interval)
-      console.log("Stopped checking for Ringba after 30 seconds")
-      if (!ringbaLoaded) {
-        console.log("Ringba may not have loaded or no number was assigned")
-      }
+      addDebugInfo("Stopped checking for Ringba after 30 seconds")
     }, 30000)
 
     // Cleanup
@@ -123,22 +120,15 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       clearInterval(interval)
       clearTimeout(timeout)
     }
-  }, [defaultPhoneNumber, ringbaLoaded])
+  }, [defaultPhoneNumber])
 
   // Handle button click
   const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     e.stopPropagation()
 
-    // Use the current display phone number (which should be from Ringba if it loaded)
     const phoneToCall = displayPhoneNumber || defaultPhoneNumber
-
-    console.log("=== CALL INITIATED ===")
-    console.log("Ringba loaded:", ringbaLoaded)
-    console.log("Original default number:", defaultPhoneNumber)
-    console.log("Current display number:", displayPhoneNumber)
-    console.log("Number being called:", phoneToCall)
-    console.log("======================")
+    addDebugInfo(`Call initiated to: ${phoneToCall}`)
 
     // Make the call
     window.location.href = `tel:${phoneToCall}`
@@ -199,13 +189,15 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
             now to speak with an advisor who will help you claim your {allowanceAmount}.
           </p>
 
-          {/* Debug info - remove in production */}
-          {process.env.NODE_ENV === "development" && (
-            <div className="mb-4 p-2 bg-gray-100 text-xs text-left">
-              <div>Ringba Status: {ringbaLoaded ? "✅ Loaded" : "❌ Not Loaded"}</div>
-              <div>Default: {defaultPhoneNumber}</div>
-              <div>Display: {displayPhoneNumber}</div>
-              <div>Formatted: {formatPhoneNumber(displayPhoneNumber)}</div>
+          {/* Debug info panel - only show in development or when there are debug messages */}
+          {(process.env.NODE_ENV === "development" || debugInfo.length > 0) && (
+            <div className="mb-4 p-3 bg-gray-100 text-xs text-left max-h-40 overflow-y-auto">
+              <div className="font-bold mb-2">Debug Info:</div>
+              {debugInfo.map((info, index) => (
+                <div key={index} className="mb-1">
+                  {info}
+                </div>
+              ))}
             </div>
           )}
 
@@ -275,5 +267,9 @@ declare global {
       loading?: boolean
     }
     rtkClickID?: string
+    debugInfo?: {
+      scriptsLoaded: string[]
+      errors: string[]
+    }
   }
 }
