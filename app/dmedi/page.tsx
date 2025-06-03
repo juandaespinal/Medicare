@@ -96,12 +96,7 @@ export default function MedicareLandingPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-red-800"
-      style={{
-        background: "linear-gradient(135deg, #b91c1c 0%, #dc2626 50%, #b91c1c 100%)",
-      }}
-    >
+    <div className="min-h-screen bg-red-800">
       {/* Hidden audio elements */}
       <audio
         ref={claimAudioRef}
