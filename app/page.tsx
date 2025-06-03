@@ -100,6 +100,15 @@ export default function MedicareLandingPage() {
       className="min-h-screen bg-red-800 bg-cover bg-center"
       style={{ backgroundImage: "url('images/red-texture-bg.jpg')" }}
     >
+      {/* Test Deployment Button */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={() => alert(`Deployment test successful! Current time: ${new Date().toLocaleString()}`)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
+        >
+          Test Deploy
+        </button>
+      </div>
       {/* Hidden audio elements */}
       <audio
         ref={claimAudioRef}
