@@ -25,18 +25,23 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
 
   // Function to format phone number for display
   const formatPhoneNumber = (phone: string): string => {
-    // Remove all non-digit characters
-    const cleaned = phone.replace(/\D/g, "")
+    try {
+      // Remove all non-digit characters
+      const cleaned = phone.replace(/\D/g, "")
 
-    // Format based on length
-    if (cleaned.length === 10) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
-    } else if (cleaned.length === 11 && cleaned[0] === "1") {
-      return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
+      // Format based on length
+      if (cleaned.length === 10) {
+        return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+      } else if (cleaned.length === 11 && cleaned[0] === "1") {
+        return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
+      }
+
+      // If we can't format it, return the original
+      return phone
+    } catch (error) {
+      console.error("Error formatting phone number:", error)
+      return phone
     }
-
-    // If we can't format it, return the original
-    return phone
   }
 
   // Effect to handle Ringba number detection and replacement
@@ -190,7 +195,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
           </p>
 
           {/* Debug info panel - only show in development or when there are debug messages */}
-          {(process.env.NODE_ENV === "development" || debugInfo.length > 0) && (
+          {debugInfo.length > 0 && (
             <div className="mb-4 p-3 bg-gray-100 text-xs text-left max-h-40 overflow-y-auto">
               <div className="font-bold mb-2">Debug Info:</div>
               {debugInfo.map((info, index) => (
