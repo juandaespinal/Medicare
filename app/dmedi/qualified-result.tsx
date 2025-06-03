@@ -9,9 +9,10 @@ interface QualifiedResultProps {
 }
 
 export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClick }: QualifiedResultProps) {
-  // Default phone number - this is the static number that Ringba will detect and replace
+  // Default phone number - this MUST be the exact number Ringba will detect and replace
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
+  const [ringbaLoaded, setRingbaLoaded] = useState(false)
 
   // Reference to the button element
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -32,48 +33,59 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     return phone
   }
 
-  // Effect to handle phone number updates from Ringba
+  // Effect to handle Ringba number detection and replacement
   useEffect(() => {
-    console.log("DmediQualifiedResult component mounted - looking for Ringba number")
+    console.log("DmediQualifiedResult mounted - initializing Ringba detection")
+    console.log("Default number for Ringba to detect:", defaultPhoneNumber)
 
-    // Monitor for Ringba number replacement
-    const checkForRingbaReplacement = () => {
-      // Look for any phone number on the page that's different from our default
+    // Function to check if Ringba has loaded and assigned a number
+    const checkRingbaStatus = () => {
+      console.log("Checking Ringba status...")
+      console.log("window._rgba:", window._rgba)
+      console.log("window.ringba_known_numbers:", window.ringba_known_numbers)
+
+      // Method 1: Check _rgba object
+      if (window._rgba && window._rgba.numbers && window._rgba.numbers.length > 0) {
+        const assignedNumber = window._rgba.numbers[0]
+        console.log("Ringba assigned number from _rgba.numbers:", assignedNumber)
+        if (assignedNumber && assignedNumber !== defaultPhoneNumber) {
+          setDisplayPhoneNumber(assignedNumber)
+          setRingbaLoaded(true)
+          return true
+        }
+      }
+
+      // Method 2: Check ringba_known_numbers
+      if (window.ringba_known_numbers && Object.keys(window.ringba_known_numbers).length > 0) {
+        const numbers = Object.values(window.ringba_known_numbers)
+        console.log("Ringba known numbers:", numbers)
+        if (numbers.length > 0 && numbers[0] !== defaultPhoneNumber) {
+          setDisplayPhoneNumber(numbers[0] as string)
+          setRingbaLoaded(true)
+          return true
+        }
+      }
+
+      // Method 3: Check if any phone elements have been replaced by Ringba
       const phoneElements = document.querySelectorAll('a[href^="tel:"], .phone-display, #dynamic-phone-number')
-
       for (const element of phoneElements) {
-        let foundNumber = null
+        const href = element.getAttribute("href")
+        const text = element.textContent
 
-        // Check href attribute for tel: links
-        if (element.tagName === "A") {
-          const href = element.getAttribute("href")
-          if (href && href.startsWith("tel:") && href !== `tel:${defaultPhoneNumber}`) {
-            foundNumber = href.replace("tel:", "")
-            console.log("Ringba replaced tel: link with:", foundNumber)
-          }
+        if (href && href.startsWith("tel:") && href !== `tel:${defaultPhoneNumber}`) {
+          const newNumber = href.replace("tel:", "")
+          console.log("Ringba replaced tel: link with:", newNumber)
+          setDisplayPhoneNumber(newNumber)
+          setRingbaLoaded(true)
+          return true
         }
 
-        // Check text content
-        const textContent = element.textContent?.trim()
-        if (textContent && textContent !== formatPhoneNumber(defaultPhoneNumber)) {
-          // Simple check for phone number patterns
-          if (textContent.includes("(") && textContent.includes(")") && textContent.includes("-")) {
-            foundNumber = textContent.replace(/[^\d]/g, "")
-            if (foundNumber.length === 10 || foundNumber.length === 11) {
-              console.log("Ringba replaced text content with:", foundNumber)
-            } else {
-              foundNumber = null
-            }
-          }
-        }
-
-        if (foundNumber) {
-          setDisplayPhoneNumber(foundNumber)
-          // Update the display
-          const phoneDisplay = document.getElementById("dynamic-phone-number")
-          if (phoneDisplay) {
-            phoneDisplay.textContent = formatPhoneNumber(foundNumber)
-          }
+        if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/$$\d{3}$$\s\d{3}-\d{4}/)) {
+          console.log("Ringba replaced text content with:", text)
+          // Extract just the digits for the state
+          const digitsOnly = text.replace(/\D/g, "")
+          setDisplayPhoneNumber(digitsOnly)
+          setRingbaLoaded(true)
           return true
         }
       }
@@ -81,23 +93,28 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       return false
     }
 
-    // Check immediately and then periodically
+    // Check immediately
     const initialCheck = setTimeout(() => {
-      if (!checkForRingbaReplacement()) {
-        console.log("No Ringba replacement detected initially, using default number")
+      if (!checkRingbaStatus()) {
+        console.log("No Ringba number detected initially, using default")
       }
     }, 1000)
 
-    // Continue checking for 30 seconds
+    // Continue checking periodically for 30 seconds
     const interval = setInterval(() => {
-      if (checkForRingbaReplacement()) {
+      if (checkRingbaStatus()) {
         clearInterval(interval)
+        console.log("Ringba number detected, stopping checks")
       }
     }, 2000)
 
+    // Stop checking after 30 seconds
     const timeout = setTimeout(() => {
       clearInterval(interval)
-      console.log("Stopped checking for Ringba replacement after 30 seconds")
+      console.log("Stopped checking for Ringba after 30 seconds")
+      if (!ringbaLoaded) {
+        console.log("Ringba may not have loaded or no number was assigned")
+      }
     }, 30000)
 
     // Cleanup
@@ -106,17 +123,24 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       clearInterval(interval)
       clearTimeout(timeout)
     }
-  }, [defaultPhoneNumber])
+  }, [defaultPhoneNumber, ringbaLoaded])
 
   // Handle button click
   const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
     e.stopPropagation()
 
-    // Use the current display phone number (which may have been replaced by Ringba)
+    // Use the current display phone number (which should be from Ringba if it loaded)
     const phoneToCall = displayPhoneNumber || defaultPhoneNumber
 
-    console.log("Initiating call to:", phoneToCall)
+    console.log("=== CALL INITIATED ===")
+    console.log("Ringba loaded:", ringbaLoaded)
+    console.log("Original default number:", defaultPhoneNumber)
+    console.log("Current display number:", displayPhoneNumber)
+    console.log("Number being called:", phoneToCall)
+    console.log("======================")
+
+    // Make the call
     window.location.href = `tel:${phoneToCall}`
   }
 
@@ -175,6 +199,16 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
             now to speak with an advisor who will help you claim your {allowanceAmount}.
           </p>
 
+          {/* Debug info - remove in production */}
+          {process.env.NODE_ENV === "development" && (
+            <div className="mb-4 p-2 bg-gray-100 text-xs text-left">
+              <div>Ringba Status: {ringbaLoaded ? "✅ Loaded" : "❌ Not Loaded"}</div>
+              <div>Default: {defaultPhoneNumber}</div>
+              <div>Display: {displayPhoneNumber}</div>
+              <div>Formatted: {formatPhoneNumber(displayPhoneNumber)}</div>
+            </div>
+          )}
+
           {/* Enhanced attention-grabbing button for qualified result */}
           <div className="relative">
             <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
@@ -184,6 +218,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
               onClick={handleButtonClick}
               className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 animate-pulse"
               data-default-number={defaultPhoneNumber}
+              data-ringba-number={displayPhoneNumber}
             >
               <div className="absolute -right-3 -top-3 bg-yellow-400 text-red-700 text-sm font-bold px-2 py-1 rounded-full">
                 FREE
@@ -225,4 +260,20 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       </div>
     </div>
   )
+}
+
+// Add TypeScript interface for the global window object
+declare global {
+  interface Window {
+    ringba_known_numbers?: Record<string, any>
+    ringbaPhoneNumber?: any
+    defaultRingbaNumber?: string
+    _rgba?: {
+      numbers?: any[]
+      data?: any
+      q: any[]
+      loading?: boolean
+    }
+    rtkClickID?: string
+  }
 }

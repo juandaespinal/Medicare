@@ -18,11 +18,12 @@ export default function DmediLayout({
         {/* RDTK Tracking Script */}
         <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
 
-        {/* Ringba Number Pool Script */}
+        {/* Ringba Number Pool Script - CRITICAL: This must load first */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
 (function(e,d) {
+  //Ringba.com phone number tracking
   var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
   var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
   e._rgba = e._rgba || { q: [] }; 
@@ -36,20 +37,34 @@ export default function DmediLayout({
     s.parentNode.insertBefore(sc, s);
     e._rgba.loading = true;
   }
+  
+  // Store the default number that Ringba should detect and replace
   e.defaultRingbaNumber = "+18554690274";
+  
+  // Debug logging for Ringba
+  console.log("Ringba script initialized with tag:", ringba_com_tag);
+  
 })(window,document);
     `,
           }}
         />
+
+        {/* Meta tags */}
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Medicare Health Allowance Benefits</title>
+        <meta name="description" content="Claim your Medicare Health Allowance benefits today" />
       </head>
       <body>
         {children}
 
-        {/* Additional scripts requested to be added before closing body tag */}
+        {/* Additional scripts at the end of body */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Ringba tags for tracking
               (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", track_attempted: "yes" });
+              
               var intervalId = setInterval(() => {
                 if (window.rtkClickID != undefined) {
                   (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", clickid: window.rtkClickID });
@@ -59,6 +74,20 @@ export default function DmediLayout({
                   console.log("rtkcid not defined yet");
                 }
               }, 500);
+              
+              // Debug: Check if Ringba has loaded and what numbers are available
+              setTimeout(function() {
+                console.log("Checking Ringba status...");
+                console.log("window._rgba:", window._rgba);
+                console.log("window.ringba_known_numbers:", window.ringba_known_numbers);
+                
+                // Look for any phone numbers that Ringba might have replaced
+                var phoneElements = document.querySelectorAll('a[href^="tel:"], .phone-display, #dynamic-phone-number, span[data-phone], [data-ringba-number]');
+                console.log("Found phone elements:", phoneElements.length);
+                phoneElements.forEach(function(el, index) {
+                  console.log("Phone element " + index + ":", el.tagName, el.textContent, el.href || el.getAttribute('data-ringba-number'));
+                });
+              }, 3000);
             `,
           }}
         />
