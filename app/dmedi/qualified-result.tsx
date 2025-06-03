@@ -67,10 +67,17 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       if (window.ringba_known_numbers && Object.keys(window.ringba_known_numbers).length > 0) {
         const numbers = Object.values(window.ringba_known_numbers)
         addDebugInfo(`Found ringba_known_numbers: ${JSON.stringify(numbers)}`)
-        if (numbers.length > 0 && numbers[0] !== defaultPhoneNumber) {
-          setDisplayPhoneNumber(numbers[0] as string)
-          addDebugInfo(`Updated display number from known_numbers: ${numbers[0]}`)
-          return true
+        if (numbers.length > 0) {
+          // Extract the phone number from the first number object
+          const firstNumber = numbers[0] as any
+          const phoneNumber = firstNumber.int || firstNumber.loc || firstNumber
+          addDebugInfo(`Extracted phone number: ${phoneNumber}`)
+
+          if (phoneNumber && typeof phoneNumber === "string" && phoneNumber !== defaultPhoneNumber) {
+            setDisplayPhoneNumber(phoneNumber)
+            addDebugInfo(`Updated display number from known_numbers: ${phoneNumber}`)
+            return true
+          }
         }
       }
 
