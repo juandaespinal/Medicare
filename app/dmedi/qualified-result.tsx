@@ -12,16 +12,9 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
   // Default phone number - this MUST be the exact number Ringba will detect and replace
   const defaultPhoneNumber = "+18554690274"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
-  const [debugInfo, setDebugInfo] = useState<string[]>([])
 
   // Reference to the button element
   const buttonRef = useRef<HTMLButtonElement>(null)
-
-  // Function to add debug info
-  const addDebugInfo = (info: string) => {
-    console.log("DEBUG:", info)
-    setDebugInfo((prev) => [...prev, `${new Date().toLocaleTimeString()}: ${info}`])
-  }
 
   // Function to format phone number for display
   const formatPhoneNumber = (phone: string): string => {
@@ -46,19 +39,19 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
 
   // Effect to handle Ringba number detection and replacement
   useEffect(() => {
-    addDebugInfo("Component mounted, starting Ringba detection")
+    console.log("Ringba: Component mounted, starting detection")
 
     // Function to check if Ringba has loaded and assigned a number
     const checkRingbaStatus = () => {
-      addDebugInfo("Checking Ringba status...")
+      console.log("Ringba: Checking status...")
 
       // Method 1: Check _rgba object
       if (window._rgba && window._rgba.numbers && window._rgba.numbers.length > 0) {
         const assignedNumber = window._rgba.numbers[0]
-        addDebugInfo(`Found number in _rgba.numbers: ${assignedNumber}`)
+        console.log(`Found number in _rgba.numbers: ${assignedNumber}`)
         if (assignedNumber && assignedNumber !== defaultPhoneNumber) {
           setDisplayPhoneNumber(assignedNumber)
-          addDebugInfo(`Updated display number to: ${assignedNumber}`)
+          console.log(`Updated display number to: ${assignedNumber}`)
           return true
         }
       }
@@ -66,16 +59,16 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
       // Method 2: Check ringba_known_numbers
       if (window.ringba_known_numbers && Object.keys(window.ringba_known_numbers).length > 0) {
         const numbers = Object.values(window.ringba_known_numbers)
-        addDebugInfo(`Found ringba_known_numbers: ${JSON.stringify(numbers)}`)
+        console.log("Ringba: Found known numbers:", numbers.length)
         if (numbers.length > 0) {
           // Extract the phone number from the first number object
           const firstNumber = numbers[0] as any
           const phoneNumber = firstNumber.int || firstNumber.loc || firstNumber
-          addDebugInfo(`Extracted phone number: ${phoneNumber}`)
+          console.log("Ringba: Extracted number:", phoneNumber)
 
           if (phoneNumber && typeof phoneNumber === "string" && phoneNumber !== defaultPhoneNumber) {
             setDisplayPhoneNumber(phoneNumber)
-            addDebugInfo(`Updated display number from known_numbers: ${phoneNumber}`)
+            console.log("Ringba: Updated display number:", phoneNumber)
             return true
           }
         }
@@ -89,13 +82,13 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
 
         if (href && href.startsWith("tel:") && href !== `tel:${defaultPhoneNumber}`) {
           const newNumber = href.replace("tel:", "")
-          addDebugInfo(`Found replaced tel: link: ${newNumber}`)
+          console.log(`Found replaced tel: link: ${newNumber}`)
           setDisplayPhoneNumber(newNumber)
           return true
         }
 
         if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/$$\d{3}$$\s\d{3}-\d{4}/)) {
-          addDebugInfo(`Found replaced text content: ${text}`)
+          console.log(`Found replaced text content: ${text}`)
           const digitsOnly = text.replace(/\D/g, "")
           setDisplayPhoneNumber(digitsOnly)
           return true
@@ -108,7 +101,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     // Check immediately
     const initialCheck = setTimeout(() => {
       if (!checkRingbaStatus()) {
-        addDebugInfo("No Ringba number detected initially")
+        console.log("Ringba: No number detected initially")
       }
     }, 1000)
 
@@ -116,14 +109,14 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     const interval = setInterval(() => {
       if (checkRingbaStatus()) {
         clearInterval(interval)
-        addDebugInfo("Ringba number detected, stopping checks")
+        console.log("Ringba: Number detected, stopping checks")
       }
     }, 2000)
 
     // Stop checking after 30 seconds
     const timeout = setTimeout(() => {
       clearInterval(interval)
-      addDebugInfo("Stopped checking for Ringba after 30 seconds")
+      console.log("Ringba: Stopped checking after 30 seconds")
     }, 30000)
 
     // Cleanup
@@ -140,7 +133,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
     e.stopPropagation()
 
     const phoneToCall = displayPhoneNumber || defaultPhoneNumber
-    addDebugInfo(`Call initiated to: ${phoneToCall}`)
+    console.log("Ringba: Call initiated to:", phoneToCall)
 
     // Make the call
     window.location.href = `tel:${phoneToCall}`
@@ -200,18 +193,6 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
             </span>{" "}
             now to speak with an advisor who will help you claim your {allowanceAmount}.
           </p>
-
-          {/* Debug info panel - only show in development or when there are debug messages */}
-          {debugInfo.length > 0 && (
-            <div className="mb-4 p-3 bg-gray-100 text-xs text-left max-h-40 overflow-y-auto">
-              <div className="font-bold mb-2">Debug Info:</div>
-              {debugInfo.map((info, index) => (
-                <div key={index} className="mb-1">
-                  {info}
-                </div>
-              ))}
-            </div>
-          )}
 
           {/* Enhanced attention-grabbing button for qualified result */}
           <div className="relative">
