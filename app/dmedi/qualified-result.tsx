@@ -87,7 +87,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
           return true
         }
 
-        if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/$$\d{3}$$\s\d{3}-\d{4}/)) {
+        if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/\(\d{3}\)\s\d{3}-\d{4}/)) {
           console.log(`Found replaced text content: ${text}`)
           const digitsOnly = text.replace(/\D/g, "")
           setDisplayPhoneNumber(digitsOnly)
@@ -198,10 +198,9 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
           <div className="relative">
             <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
 
-            <button
-              ref={buttonRef}
-              onClick={handleButtonClick}
-              className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 animate-pulse"
+            <a
+              href={`tel:${displayPhoneNumber}`}
+              className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-12 sm:py-10 px-6 sm:px-10 rounded-xl text-2xl sm:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 animate-pulse block"
               data-default-number={defaultPhoneNumber}
               data-ringba-number={displayPhoneNumber}
             >
@@ -223,7 +222,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
                 </svg>
                 <span>CALL NOW</span>
               </div>
-            </button>
+            </a>
           </div>
 
           <div className="mt-3 flex justify-center items-center text-sm text-gray-600">

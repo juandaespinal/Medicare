@@ -73,12 +73,22 @@ export default function DmediLayout({
               loadScript('https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559', 'RedTrack')
                 .catch(error => console.log('RedTrack blocked or failed'));
               
-              // Try to load Ringba
-              loadScript('//b-js.ringba.com/CAefa19b14140b4593baf4f0e1d288e9e8', 'Ringba')
-                .catch(error => console.log('Ringba blocked or failed'));
+              // Load Ringba with the simpler script tag approach
+              const ringbaScript = document.createElement('script');
+              ringbaScript.src = '//b-js.ringba.com/CAefa19b14140b4593baf4f0e1d288e9e8';
+              ringbaScript.async = true;
+              ringbaScript.onload = function() {
+                console.log("Ringba loaded successfully");
+                window.debugInfo.scriptsLoaded.push('Ringba');
+              };
+              ringbaScript.onerror = function(error) {
+                console.error("Ringba failed to load:", error);
+                window.debugInfo.errors.push('Ringba failed to load');
+              };
+              document.head.appendChild(ringbaScript);
               
               // Alternative Ringba loading method
-              setTimeout(() => {
+              /*setTimeout(() => {
                 console.log("=== TRYING ALTERNATIVE RINGBA METHOD ===");
                 
                 // Create the _rgba object manually
@@ -111,7 +121,7 @@ export default function DmediLayout({
                     e._rgba.loading = true;
                   }
                 })(window,document);
-              }, 2000);
+              }, 2000);*/
               
               // Check for scripts every 3 seconds
               let checkCount = 0;
