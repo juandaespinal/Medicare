@@ -5,7 +5,6 @@ import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import InitialContent from "@/components/initial-content"
-import AgeQuestion from "@/components/age-question"
 import MedicareQuestion from "@/components/medicare-question"
 import DmediQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
@@ -21,7 +20,6 @@ export default function MedicareLandingPage() {
 
   // Audio refs
   const claimAudioRef = useRef<HTMLAudioElement>(null)
-  const ageSelectionAudioRef = useRef<HTMLAudioElement>(null)
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
 
@@ -60,14 +58,8 @@ export default function MedicareLandingPage() {
   // Navigation handlers
   const handleInitialClaim = () => {
     playAudio(claimAudioRef)
-    setCurrentStep("age-question")
-  }
-
-  const handleAgeSelection = () => {
-    playAudio(ageSelectionAudioRef)
-    setTimeout(() => {
-      setCurrentStep("medicare-question")
-    }, 500)
+    // Skip age question and go directly to Medicare question
+    setCurrentStep("medicare-question")
   }
 
   const handleMedicareSelection = (option: string) => {
@@ -104,11 +96,6 @@ export default function MedicareLandingPage() {
         preload="auto"
       />
       <audio
-        ref={ageSelectionAudioRef}
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/great%20we%20are%20almost%20done%206-UFDENAgMUCtRT0HVqKF5aXetOIH1fE.wav"
-        preload="auto"
-      />
-      <audio
         ref={congratulationsAudioRef}
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Congratulations%20It%20looks-ioNmTiUC6kPduBw8jU4hlxcu0m0JTY.wav"
         preload="auto"
@@ -126,8 +113,6 @@ export default function MedicareLandingPage() {
           {currentStep === "initial-content" && (
             <InitialContent allowanceAmount={allowanceAmount} onClaimClick={handleInitialClaim} />
           )}
-
-          {currentStep === "age-question" && <AgeQuestion onAgeSelect={handleAgeSelection} />}
 
           {currentStep === "medicare-question" && <MedicareQuestion onMedicareSelect={handleMedicareSelection} />}
 
