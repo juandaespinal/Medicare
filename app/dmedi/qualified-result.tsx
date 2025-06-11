@@ -10,7 +10,7 @@ interface QualifiedResultProps {
 
 export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClick }: QualifiedResultProps) {
   // Default phone number - this MUST be the exact number Ringba will detect and replace
-  const defaultPhoneNumber = "+18554690274"
+  const defaultPhoneNumber = "+18445700294"
   const [displayPhoneNumber, setDisplayPhoneNumber] = useState(defaultPhoneNumber)
 
   // Reference to the button element
@@ -87,7 +87,7 @@ export default function DmediQualifiedResult({ allowanceAmount, onFinalClaimClic
           return true
         }
 
-        if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/\(\d{3}\)\s\d{3}-\d{4}/)) {
+        if (text && text !== formatPhoneNumber(defaultPhoneNumber) && text.match(/$$\d{3}$$\s\d{3}-\d{4}/)) {
           console.log(`Found replaced text content: ${text}`)
           const digitsOnly = text.replace(/\D/g, "")
           setDisplayPhoneNumber(digitsOnly)
