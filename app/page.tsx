@@ -15,7 +15,7 @@ import Footer from "@/components/footer"
 export default function MedicareLandingPage() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState("initial-content")
-  const [allowanceAmount, setAllowanceAmount] = useState("Health Allowance")
+  const [allowanceAmount, setAllowanceAmount] = useState("Grocery Allowance")
   const [formattedAmount, setFormattedAmount] = useState("")
   const [has2500Amount, setHas2500Amount] = useState(false)
 
@@ -39,7 +39,7 @@ export default function MedicareLandingPage() {
       }).format(Number(amountParam))
 
       setFormattedAmount(formatted)
-      setAllowanceAmount(`${formatted} Health Allowance`)
+      setAllowanceAmount(`${formatted} Grocery Allowance`)
       setHas2500Amount(amountParam === "2500")
     }
   }, [searchParams])

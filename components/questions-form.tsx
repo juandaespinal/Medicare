@@ -206,14 +206,14 @@ export function QuestionsForm({
                 <div className="flex items-center justify-center">
                   <Clock className="h-5 w-5 text-yellow-600 mr-2" />
                   <p className="text-lg text-yellow-800 font-medium">
-                    Your {amount ? `${amount} ` : ""}Health Allowance is reserved for the next 15 minutes
+                    Your {amount ? `${amount} ` : ""}Grocery Allowance is reserved for the next 15 minutes
                   </p>
                 </div>
               </div>
 
               <p className="text-xl mb-5">
                 Click the button below now to talk to an advisor who will help you claim your{" "}
-                {amount ? `${amount} ` : ""}Health Allowance.
+                {amount ? `${amount} ` : ""}Grocery Allowance.
               </p>
 
               {/* Enhanced attention-grabbing button for qualified result */}
