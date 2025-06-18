@@ -14,9 +14,9 @@ import Footer from "@/components/footer"
 export default function MedicareLandingPage() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState("initial-content")
-  const [allowanceAmount, setAllowanceAmount] = useState("Grocery Allowance")
-  const [formattedAmount, setFormattedAmount] = useState("")
-  const [has2500Amount, setHas2500Amount] = useState(false)
+  const [allowanceAmount, setAllowanceAmount] = useState("$2,500 Grocery Allowance")
+  const [formattedAmount, setFormattedAmount] = useState("$2,500")
+  const [has2500Amount, setHas2500Amount] = useState(true)
 
   // Audio refs
   const claimAudioRef = useRef<HTMLAudioElement>(null)
@@ -24,8 +24,8 @@ export default function MedicareLandingPage() {
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
-    // Get amount parameter from URL
-    const amountParam = searchParams.get("amount")
+    // Get amount parameter from URL, but default to 2500
+    const amountParam = searchParams.get("amount") || "2500"
 
     if (amountParam && !isNaN(Number(amountParam))) {
       // Format the amount as currency
