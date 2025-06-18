@@ -7,23 +7,45 @@ import { useSearchParams } from "next/navigation"
 import InitialContent from "@/components/initial-content"
 import AgeQuestion from "@/components/age-question"
 import MedicareQuestion from "@/components/medicare-question"
-import QualifiedResult from "@/components/qualified-result"
+import NewBigoQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
+import { trackPageView, trackButtonClick } from "@/utils/bigo-tracking"
+import { useBigoTracking } from "@/utils/bigo-pixel-tracking"
 
-export default function MedicareLandingPage() {
+export default function NewBigoLandingPage() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState("initial-content")
   const [allowanceAmount, setAllowanceAmount] = useState("Grocery Allowance")
   const [formattedAmount, setFormattedAmount] = useState("")
   const [has2500Amount, setHas2500Amount] = useState(false)
+  const pageLoadedRef = useRef(false)
+
+  // Initialize BIGO pixel tracking
+  const { trackBigoEvent, isTracking } = useBigoTracking()
 
   // Audio refs
   const claimAudioRef = useRef<HTMLAudioElement>(null)
   const ageSelectionAudioRef = useRef<HTMLAudioElement>(null)
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
+
+  // Fire page_view event when the component mounts
+  useEffect(() => {
+    if (pageLoadedRef.current) return
+    pageLoadedRef.current = true
+
+    console.log("NewBigoLandingPage component mounted, firing page_view event")
+    trackPageView("newbigo_landing_page")
+  }, [])
+
+  // Track step changes
+  useEffect(() => {
+    if (currentStep !== "initial-content") {
+      trackButtonClick("step_change", { step: currentStep })
+    }
+  }, [currentStep])
 
   useEffect(() => {
     // Get amount parameter from URL
@@ -57,42 +79,113 @@ export default function MedicareLandingPage() {
     }
   }
 
-  // Navigation handlers
-  const handleInitialClaim = () => {
-    playAudio(claimAudioRef)
-    setCurrentStep("age-question")
+  // Function to add UTM parameter to URL
+  const addQualifiedParameter = () => {
+    try {
+      // Get current URL and create URL object
+      const currentUrl = new URL(window.location.href)
+
+      // Add qualifies=yes parameter
+      currentUrl.searchParams.set("qualifies", "yes")
+
+      // Update the URL without reloading the page
+      window.history.replaceState({}, "", currentUrl.toString())
+
+      console.log("Added qualifies=yes parameter to URL")
+    } catch (error) {
+      console.error("Error adding qualified parameter to URL:", error)
+    }
   }
 
-  const handleAgeSelection = () => {
-    playAudio(ageSelectionAudioRef)
+  // Navigation handlers with BIGO tracking
+  const handleInitialClaim = () => {
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
+    trackButtonClick("claim_now", { step: "initial", allowance_amount: allowanceAmount })
+
+    // Play the audio when the first "Claim Now" button is clicked
+    playAudio(claimAudioRef)
+
+    // Short delay to allow tracking to complete
     setTimeout(() => {
+      // Go to age question instead of directly to Medicare question
+      setCurrentStep("age-question")
+    }, 300)
+  }
+
+  // Handle age selection
+  const handleAgeSelection = () => {
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
+    trackButtonClick("age_selection", { step: "age_question" })
+
+    playAudio(ageSelectionAudioRef)
+
+    // Short delay to allow tracking to complete
+    setTimeout(() => {
+      // After age selection, proceed to Medicare question
       setCurrentStep("medicare-question")
-    }, 500)
+    }, 300)
   }
 
   const handleMedicareSelection = (option: string) => {
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
+    trackButtonClick("medicare_selection", { step: "medicare_question", selection: option })
+
     if (option === "Yes") {
+      // User qualifies - add UTM parameter
+      addQualifiedParameter()
+
       if (has2500Amount) {
         playAudio(congratulations2500AudioRef)
       } else {
         playAudio(congratulationsAudioRef)
       }
 
+      // Short delay to allow tracking to complete
       setTimeout(() => {
         setCurrentStep("qualified-result")
-      }, 500)
+      }, 300)
     } else {
-      setCurrentStep("not-qualified-result")
+      // Short delay to allow tracking to complete
+      setTimeout(() => {
+        setCurrentStep("not-qualified-result")
+      }, 300)
     }
   }
 
   const handleFinalClaim = () => {
-    alert("Thank you! A Medicare benefits specialist will contact you shortly.")
-    setCurrentStep("initial-content")
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
+    trackButtonClick("final_claim", { step: "qualified_result" })
+
+    // Short delay to allow tracking to complete
+    setTimeout(() => {
+      alert("Thank you! A Medicare benefits specialist will contact you shortly.")
+      setCurrentStep("initial-content")
+    }, 300)
   }
 
   const handleExploreOtherBenefits = () => {
-    setCurrentStep("initial-content")
+    // Track button click with BIGO pixel
+    trackBigoEvent("button")
+
+    // Track button click with original tracking
+    trackButtonClick("explore_other_benefits", { step: "not_qualified_result" })
+
+    // Short delay to allow tracking to complete
+    setTimeout(() => {
+      setCurrentStep("initial-content")
+    }, 300)
   }
 
   return (
@@ -100,15 +193,6 @@ export default function MedicareLandingPage() {
       className="min-h-screen bg-red-800 bg-cover bg-center"
       style={{ backgroundImage: "url('images/red-texture-bg.jpg')" }}
     >
-      {/* Test Deployment Button */}
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={() => alert(`Deployment test successful! Current time: ${new Date().toLocaleString()}`)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
-        >
-          Test Deploy
-        </button>
-      </div>
       {/* Hidden audio elements */}
       <audio
         ref={claimAudioRef}
@@ -144,7 +228,7 @@ export default function MedicareLandingPage() {
           {currentStep === "medicare-question" && <MedicareQuestion onMedicareSelect={handleMedicareSelection} />}
 
           {currentStep === "qualified-result" && (
-            <QualifiedResult allowanceAmount={allowanceAmount} onFinalClaimClick={handleFinalClaim} />
+            <NewBigoQualifiedResult allowanceAmount={allowanceAmount} onFinalClaimClick={handleFinalClaim} />
           )}
 
           {currentStep === "not-qualified-result" && <NotQualifiedResult onExploreClick={handleExploreOtherBenefits} />}

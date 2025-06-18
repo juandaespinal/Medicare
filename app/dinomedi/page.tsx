@@ -5,14 +5,13 @@ import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import InitialContent from "@/components/initial-content"
-import AgeQuestion from "@/components/age-question"
 import MedicareQuestion from "@/components/medicare-question"
-import QualifiedResult from "@/components/qualified-result"
+import DinoMediQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
 
-export default function MedicareLandingPage() {
+export default function DinoMediLandingPage() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState("initial-content")
   const [allowanceAmount, setAllowanceAmount] = useState("Grocery Allowance")
@@ -20,8 +19,6 @@ export default function MedicareLandingPage() {
   const [has2500Amount, setHas2500Amount] = useState(false)
 
   // Audio refs
-  const claimAudioRef = useRef<HTMLAudioElement>(null)
-  const ageSelectionAudioRef = useRef<HTMLAudioElement>(null)
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
 
@@ -57,21 +54,35 @@ export default function MedicareLandingPage() {
     }
   }
 
-  // Navigation handlers
-  const handleInitialClaim = () => {
-    playAudio(claimAudioRef)
-    setCurrentStep("age-question")
+  // Function to add UTM parameter to URL
+  const addQualifiedParameter = () => {
+    try {
+      // Get current URL and create URL object
+      const currentUrl = new URL(window.location.href)
+
+      // Add qualifies=yes parameter
+      currentUrl.searchParams.set("qualifies", "yes")
+
+      // Update the URL without reloading the page
+      window.history.replaceState({}, "", currentUrl.toString())
+
+      console.log("Added qualifies=yes parameter to URL")
+    } catch (error) {
+      console.error("Error adding qualified parameter to URL:", error)
+    }
   }
 
-  const handleAgeSelection = () => {
-    playAudio(ageSelectionAudioRef)
-    setTimeout(() => {
-      setCurrentStep("medicare-question")
-    }, 500)
+  // Navigation handlers
+  const handleInitialClaim = () => {
+    // Skip age question and go directly to Medicare question without playing audio
+    setCurrentStep("medicare-question")
   }
 
   const handleMedicareSelection = (option: string) => {
     if (option === "Yes") {
+      // User qualifies - add UTM parameter
+      addQualifiedParameter()
+
       if (has2500Amount) {
         playAudio(congratulations2500AudioRef)
       } else {
@@ -100,26 +111,7 @@ export default function MedicareLandingPage() {
       className="min-h-screen bg-red-800 bg-cover bg-center"
       style={{ backgroundImage: "url('images/red-texture-bg.jpg')" }}
     >
-      {/* Test Deployment Button */}
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={() => alert(`Deployment test successful! Current time: ${new Date().toLocaleString()}`)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
-        >
-          Test Deploy
-        </button>
-      </div>
       {/* Hidden audio elements */}
-      <audio
-        ref={claimAudioRef}
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Let-s%20get%20you%20qualified%201-mtqeraGhqXqgNjUU8telTlJiYzijNn.wav"
-        preload="auto"
-      />
-      <audio
-        ref={ageSelectionAudioRef}
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/great%20we%20are%20almost%20done%206-UFDENAgMUCtRT0HVqKF5aXetOIH1fE.wav"
-        preload="auto"
-      />
       <audio
         ref={congratulationsAudioRef}
         src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Congratulations%20It%20looks-ioNmTiUC6kPduBw8jU4hlxcu0m0JTY.wav"
@@ -139,12 +131,10 @@ export default function MedicareLandingPage() {
             <InitialContent allowanceAmount={allowanceAmount} onClaimClick={handleInitialClaim} />
           )}
 
-          {currentStep === "age-question" && <AgeQuestion onAgeSelect={handleAgeSelection} />}
-
           {currentStep === "medicare-question" && <MedicareQuestion onMedicareSelect={handleMedicareSelection} />}
 
           {currentStep === "qualified-result" && (
-            <QualifiedResult allowanceAmount={allowanceAmount} onFinalClaimClick={handleFinalClaim} />
+            <DinoMediQualifiedResult allowanceAmount={allowanceAmount} onFinalClaimClick={handleFinalClaim} />
           )}
 
           {currentStep === "not-qualified-result" && <NotQualifiedResult onExploreClick={handleExploreOtherBenefits} />}

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- RedTrack Tracking Script - Positioned at the top for priority loading -->
+  <script type="text/javascript" src="https://cy9n0.rdtk.io/track.js?rtkcmpid=680e4702db362950095e9559"></script>
+  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medicare Grocery Allowance Benefits</title>
+  
+  <!-- Ringba Number Pool Script -->
+  <script>
+      (function(e,d) {
+          //Ringba.com phone number tracking
+          var ringba_com_tag="JS27fbc6124e1b476c86fb0dc9ada51072";
+          var _sc = d.getElementsByTagName('script'), _s = _sc[_sc.length - 1];
+          e._rgba = e._rgba || { q: [] }; e._rgba.q.push({ tag: ringba_com_tag, script: _s });
+          if (!(e._rgba.loading = !!e._rgba.loading)) {
+              var sc = d.createElement('script'); sc.type = 'text/javascript'; sc.async = true;
+              sc.src = '//js.callcdn.com/js_v3/min/ringba.com.js';
+              var s = d.getElementsByTagName('script')[0]; s.parentNode.insertBefore(sc, s);
+              e._rgba.loading = true;
+          }
+          
+          // Store the default number in a global variable for easy access
+          e.defaultRingbaNumber = "+18554690274";
+      })(window,document);
+  </script>
+  
+  <style>
+      /* Basic styling to match the app */
+      body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: #b91c1c;
+      }
+      .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+      }
+      .content-box {
+          background-color: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin-bottom: 20px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .btn {
+          display: inline-block;
+          background-color: #b91c1c;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 6px;
+          text-decoration: none;
+          font-weight: bold;
+          font-size: 18px;
+          margin-top: 20px;
+      }
+      .text-center {
+          text-align: center;
+      }
+      .debug-panel {
+          position: fixed;
+          bottom: 10px;
+          left: 10px;
+          background-color: rgba(0, 0, 0, 0.8);
+          color: white;
+          padding: 10px;
+          border-radius: 4px;
+          font-family: monospace;
+          font-size: 12px;
+          max-width: 300px;
+          z-index: 9999;
+      }
+      .debug-log {
+          max-height: 200px;
+          overflow-y: auto;
+          margin-top: 10px;
+      }
+      .debug-log-item {
+          margin-bottom: 5px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+          padding-bottom: 5px;
+      }
+  </style>
+  <script>
+  // Server-to-server tracking function
+  async function trackServerEvent(eventName, eventData = {}) {
+    try {
+      // Get client-side data to enhance the event
+      const clientData = {
+        url: window.location.href,
+        referrer: document.referrer || "",
+        user_agent: navigator.userAgent,
+        screen_resolution: `${window.screen.width}x${window.screen.height}`,
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      };
+      
+      // Send the event to our server-side API
+      const response = await fetch("/api/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event: eventName,
+          ...clientData,
+          ...eventData,
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API responded with status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log(`Server-to-server event ${eventName} sent successfully:`, result);
+        return true;
+      } else {
+        console.error(`Error sending server-to-server event ${eventName}:`, result.error);
+        return false;
+      }
+    } catch (error) {
+      console.error(`Error tracking server-to-server event ${eventName}:`, error);
+      return false;
+    }
+  }
+  
+  // Track page view when the page loads
+  window.addEventListener('load', function() {
+    // Track page view
+    trackServerEvent('page_view', { page_type: 'static' });
+    
+    // Check for test mode
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('test_mode') === 'true') {
+      enableTestMode();
+    }
+  });
+  
+  // Debug log for test mode
+  const debugLog = [];
+  
+  // Enable test mode
+  function enableTestMode() {
+    console.log("Test mode enabled");
+    
+    // Create debug panel
+    const debugPanel = document.createElement('div');
+    debugPanel.className = 'debug-panel';
+    debugPanel.innerHTML = `
+      <div><strong>Server-to-Server Tracking Test Mode</strong></div>
+      <div class="debug-log"></div>
+    `;
+    document.body.appendChild(debugPanel);
+    
+    // Override trackServerEvent function to log events
+    const originalTrackServerEvent = trackServerEvent;
+    window.trackServerEvent = async function(eventName, eventData = {}) {
+      // Log to console
+      console.log("Server-to-Server Event:", eventName, eventData);
+      
+      // Add to debug log
+      const logEntry = {
+        timestamp: new Date().toISOString(),
+        event: eventName,
+        data: eventData
+      };
+      
+      debugLog.push(logEntry);
+      
+      // Update debug panel
+      updateDebugPanel();
+      
+      try {
+        // Call original function
+        const result = await originalTrackServerEvent(eventName, eventData);
+        
+        // Update log entry with result
+        logEntry.success = result;
+        updateDebugPanel();
+        
+        return result;
+      } catch (error) {
+        // Update log entry with error
+        logEntry.success = false;
+        logEntry.error = error.message;
+        updateDebugPanel();
+        
+        throw error;
+      }
+    };
+    
+    // Add test buttons
+    const container = document.querySelector('.container');
+    const testButtons = document.createElement('div');
+    testButtons.className = 'content-box';
+    testButtons.innerHTML = `
+      <h2 class="text-center">Test Server-to-Server Tracking</h2>
+      <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+        <button id="test-page-view" class="btn" style="background-color: #4CAF50;">Test Page View</button>
+        <button id="test-button-click" class="btn" style="background-color: #2196F3;">Test Button Click</button>
+        <button id="test-conversion" class="btn" style="background-color: #9C27B0;">Test Conversion</button>
+      </div>
+    `;
+    container.appendChild(testButtons);
+    
+    // Add event listeners
+    document.getElementById('test-page-view').addEventListener('click', function() {
+      trackServerEvent('page_view', { test: true, timestamp: Date.now() });
+    });
+    
+    document.getElementById('test-button-click').addEventListener('click', function() {
+      trackServerEvent('button_click', { button_name: 'test_button', test: true, timestamp: Date.now() });
+    });
+    
+    document.getElementById('test-conversion').addEventListener('click', function() {
+      trackServerEvent('conversion', { value: 1, currency: 'USD', test: true, timestamp: Date.now() });
+    });
+  }
+  
+  // Update debug panel
+  function updateDebugPanel() {
+    const debugLogElement = document.querySelector('.debug-log');
+    if (!debugLogElement) return;
+    
+    // Clear current log
+    debugLogElement.innerHTML = '';
+    
+    // Add log items (most recent first)
+    debugLog.slice().reverse().forEach(function(log) {
+      const logItem = document.createElement('div');
+      logItem.className = 'debug-log-item';
+      logItem.innerHTML = `
+        <div><strong>${log.event}</strong> - ${new Date(log.timestamp).toLocaleTimeString()}</div>
+        <div style="font-size: 10px;">${JSON.stringify(log.data)}</div>
+        ${log.success !== undefined ? `<div style="color: ${log.success ? '#4CAF50' : '#F44336'}; margin-top: 3px;">${log.success ? 'Success' : 'Failed'}${log.error ? ': ' + log.error : ''}</div>` : ''}
+      `;
+      debugLogElement.appendChild(logItem);
+    });
+  }
+  </script>
+</head>
+<body>
+  <div class="container">
+      <div class="content-box">
+          <h1 class="text-center">Medicare Grocery Allowance Benefits</h1>
+          <p class="text-center">This is a static fallback page. Please visit our main site for the full experience.</p>
+          <div class="text-center">
+              <a href="/newbigo" class="btn" onclick="trackServerEvent('button_click', {button_name: 'go_to_main_site', page: 'static'}); return true;">Go to Main Site</a>
+          </div>
+      </div>
+  </div>
+  
+  <!-- Additional scripts at the end of body -->
+  <script>
+      (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", track_attempted: "yes" });
+      var intervalId = setInterval(() => {
+          if (window.rtkClickID != undefined) {
+              (window._rgba_tags = (window._rgba_tags || [])).push({ type: "User", clickid: window.rtkClickID });
+              console.log("Just ran the rtkClickID script to add Ringba tags: ", window.rtkClickID);
+              clearInterval(intervalId);
+          } else {
+              console.log("rtkcid not defined yet");
+          }
+      }, 500);
+  </script>
+</body>
+</html>

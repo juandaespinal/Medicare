@@ -7,12 +7,12 @@ import { useSearchParams } from "next/navigation"
 import InitialContent from "@/components/initial-content"
 import AgeQuestion from "@/components/age-question"
 import MedicareQuestion from "@/components/medicare-question"
-import QualifiedResult from "@/components/qualified-result"
+import NewMedicareQualifiedResult from "./qualified-result"
 import NotQualifiedResult from "@/components/not-qualified-result"
 import CountdownTimer from "@/components/countdown-timer"
 import Footer from "@/components/footer"
 
-export default function MedicareLandingPage() {
+export default function NewMedicareLandingPage() {
   const searchParams = useSearchParams()
   const [currentStep, setCurrentStep] = useState("initial-content")
   const [allowanceAmount, setAllowanceAmount] = useState("Grocery Allowance")
@@ -57,14 +57,38 @@ export default function MedicareLandingPage() {
     }
   }
 
+  // Function to add UTM parameter to URL
+  const addQualifiedParameter = () => {
+    try {
+      // Get current URL and create URL object
+      const currentUrl = new URL(window.location.href)
+
+      // Add qualifies=yes parameter
+      currentUrl.searchParams.set("qualifies", "yes")
+
+      // Update the URL without reloading the page
+      window.history.replaceState({}, "", currentUrl.toString())
+
+      console.log("Added qualifies=yes parameter to URL")
+    } catch (error) {
+      console.error("Error adding qualified parameter to URL:", error)
+    }
+  }
+
   // Navigation handlers
   const handleInitialClaim = () => {
+    // Play the audio when the first "Claim Now" button is clicked
     playAudio(claimAudioRef)
+
+    // Go to age question instead of directly to Medicare question
     setCurrentStep("age-question")
   }
 
+  // Handle age selection
   const handleAgeSelection = () => {
     playAudio(ageSelectionAudioRef)
+
+    // After age selection, proceed to Medicare question
     setTimeout(() => {
       setCurrentStep("medicare-question")
     }, 500)
@@ -72,6 +96,9 @@ export default function MedicareLandingPage() {
 
   const handleMedicareSelection = (option: string) => {
     if (option === "Yes") {
+      // User qualifies - add UTM parameter
+      addQualifiedParameter()
+
       if (has2500Amount) {
         playAudio(congratulations2500AudioRef)
       } else {
@@ -100,15 +127,6 @@ export default function MedicareLandingPage() {
       className="min-h-screen bg-red-800 bg-cover bg-center"
       style={{ backgroundImage: "url('images/red-texture-bg.jpg')" }}
     >
-      {/* Test Deployment Button */}
-      <div className="fixed top-4 right-4 z-50">
-        <button
-          onClick={() => alert(`Deployment test successful! Current time: ${new Date().toLocaleString()}`)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
-        >
-          Test Deploy
-        </button>
-      </div>
       {/* Hidden audio elements */}
       <audio
         ref={claimAudioRef}
@@ -144,7 +162,7 @@ export default function MedicareLandingPage() {
           {currentStep === "medicare-question" && <MedicareQuestion onMedicareSelect={handleMedicareSelection} />}
 
           {currentStep === "qualified-result" && (
-            <QualifiedResult allowanceAmount={allowanceAmount} onFinalClaimClick={handleFinalClaim} />
+            <NewMedicareQualifiedResult allowanceAmount={allowanceAmount} onFinalClaimClick={handleFinalClaim} />
           )}
 
           {currentStep === "not-qualified-result" && <NotQualifiedResult onExploreClick={handleExploreOtherBenefits} />}
