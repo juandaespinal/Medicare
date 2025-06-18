@@ -20,7 +20,7 @@ export default function MedicareQuestion({ onMedicareSelect }: MedicareQuestionP
               <div className="w-full max-w-xs bg-gray-200 h-2 rounded-full overflow-hidden">
                 <div className="bg-blue-600 h-full rounded-full" style={{ width: "100%" }}></div>
               </div>
-              <span className="ml-3 text-gray-600 font-medium">Step 2/2</span>
+              <span className="ml-3 text-gray-600 font-medium">Step 1/1</span>
             </div>
 
             {/* Question */}

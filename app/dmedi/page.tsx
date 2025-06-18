@@ -18,10 +18,13 @@ export default function MedicareLandingPage() {
   const [formattedAmount, setFormattedAmount] = useState("$2,500")
   const [has2500Amount, setHas2500Amount] = useState(true)
 
-  // Audio refs
-  const claimAudioRef = useRef<HTMLAudioElement>(null)
+  // Audio refs - removed claim audio
+  const medicareQuestionAudioRef = useRef<HTMLAudioElement>(null)
   const congratulationsAudioRef = useRef<HTMLAudioElement>(null)
   const congratulations2500AudioRef = useRef<HTMLAudioElement>(null)
+
+  // Track if Medicare audio has already played to prevent duplicates
+  const [medicareAudioPlayed, setMedicareAudioPlayed] = useState(false)
 
   useEffect(() => {
     // Get amount parameter from URL, but default to 2500
@@ -42,22 +45,26 @@ export default function MedicareLandingPage() {
     }
   }, [searchParams])
 
-  // Audio playback function
-  const playAudio = (audioRef: React.RefObject<HTMLAudioElement>) => {
+  // Audio playback function with logging
+  const playAudio = (audioRef: React.RefObject<HTMLAudioElement>, audioName: string) => {
+    console.log(`Attempting to play audio: ${audioName}`)
     if (audioRef.current) {
-      // Reset to beginning
+      // Stop any currently playing audio first
+      audioRef.current.pause()
       audioRef.current.currentTime = 0
 
       // Play with error handling
       audioRef.current.play().catch((error) => {
-        console.error("Audio playback failed:", error)
+        console.error(`Audio playback failed for ${audioName}:`, error)
       })
     }
   }
 
   // Navigation handlers
   const handleInitialClaim = () => {
-    playAudio(claimAudioRef)
+    // REMOVED CLAIM AUDIO - no audio plays when clicking "Claim Now"
+    // Reset Medicare audio flag when starting over
+    setMedicareAudioPlayed(false)
     // Skip age question and go directly to Medicare question
     setCurrentStep("medicare-question")
   }
@@ -65,9 +72,9 @@ export default function MedicareLandingPage() {
   const handleMedicareSelection = (option: string) => {
     if (option === "Yes") {
       if (has2500Amount) {
-        playAudio(congratulations2500AudioRef)
+        playAudio(congratulations2500AudioRef, "Congratulations 2500 Audio")
       } else {
-        playAudio(congratulationsAudioRef)
+        playAudio(congratulationsAudioRef, "Congratulations Audio")
       }
 
       setTimeout(() => {
@@ -81,18 +88,34 @@ export default function MedicareLandingPage() {
   const handleFinalClaim = () => {
     alert("Thank you! A Medicare benefits specialist will contact you shortly.")
     setCurrentStep("initial-content")
+    setMedicareAudioPlayed(false) // Reset for next time
   }
 
   const handleExploreOtherBenefits = () => {
     setCurrentStep("initial-content")
+    setMedicareAudioPlayed(false) // Reset for next time
   }
+
+  // Play Medicare question audio ONLY ONCE when that step is reached
+  useEffect(() => {
+    if (currentStep === "medicare-question" && !medicareAudioPlayed) {
+      console.log("Medicare question step reached, playing audio...")
+      // Small delay to ensure component is mounted
+      const timer = setTimeout(() => {
+        playAudio(medicareQuestionAudioRef, "Medicare Question Audio")
+        setMedicareAudioPlayed(true) // Mark as played to prevent duplicates
+      }, 500)
+
+      return () => clearTimeout(timer)
+    }
+  }, [currentStep, medicareAudioPlayed])
 
   return (
     <div className="min-h-screen bg-red-800">
-      {/* Hidden audio elements */}
+      {/* Hidden audio elements - REMOVED CLAIM AUDIO */}
       <audio
-        ref={claimAudioRef}
-        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Let-s%20get%20you%20qualified%201-mtqeraGhqXqgNjUU8telTlJiYzijNn.wav"
+        ref={medicareQuestionAudioRef}
+        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/great%20we%20are%20almost%20done%206-UFDENAgMUCtRT0HVqKF5aXetOIH1fE.wav"
         preload="auto"
       />
       <audio
