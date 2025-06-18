@@ -8,10 +8,10 @@ interface InitialContentProps {
 export default function InitialContent({ allowanceAmount, onClaimClick }: InitialContentProps) {
   return (
     <div id="initial-content">
-      <div className="bg-yellow-100 border-l-4 border-yellow-500 p-2 mb-3 text-xs sm:text-sm">
+      <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 mb-4 text-sm sm:text-base">
         <div className="flex items-center">
           <svg
-            className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500 mr-1"
+            className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500 mr-2"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -30,12 +30,12 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
         </div>
       </div>
 
-      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-3">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-4 px-2 leading-tight">
         Seniors: Claim Your $2,500 Grocery Allowance + $185 Monthly Bonus
       </h2>
 
-      {/* Dual Benefits Cards - Side by Side */}
-      <div className="my-3 grid grid-cols-2 gap-2 max-w-2xl mx-auto px-1">
+      {/* Dual Benefits Cards - Side by Side with Larger Size */}
+      <div className="my-4 grid grid-cols-2 gap-3 max-w-3xl mx-auto px-2">
         {/* Allowance Card */}
         <div className="relative">
           <div className="w-full relative">
@@ -44,12 +44,12 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
               alt="Medicare Allowance Card"
               className="w-full h-auto rounded-lg shadow-lg"
             />
-            <div className="absolute top-0 right-0 bg-red-600 text-white text-[8px] xs:text-xs font-bold py-0.5 px-1 rounded-br-lg rounded-tl-lg">
+            <div className="absolute top-1 right-1 bg-red-600 text-white text-xs sm:text-sm font-bold py-1 px-2 rounded-br-lg rounded-tl-lg">
               $2,500 VALUE
             </div>
           </div>
-          <div className="text-center mt-1">
-            <p className="text-xs font-medium">Grocery Allowance Card</p>
+          <div className="text-center mt-2">
+            <p className="text-sm sm:text-base font-medium">Grocery Allowance Card</p>
           </div>
         </div>
 
@@ -61,42 +61,43 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
               alt="$185 Monthly Social Security Bonus"
               className="w-full h-auto rounded-lg shadow-lg"
             />
-            <div className="absolute top-0 right-0 bg-green-600 text-white text-[8px] xs:text-xs font-bold py-0.5 px-1 rounded-br-lg rounded-tl-lg">
+            <div className="absolute top-1 right-1 bg-green-600 text-white text-xs sm:text-sm font-bold py-1 px-2 rounded-br-lg rounded-tl-lg">
               $185 MONTHLY
             </div>
           </div>
-          <div className="text-center mt-1">
-            <p className="text-xs font-medium">Social Security Bonus</p>
+          <div className="text-center mt-2">
+            <p className="text-sm sm:text-base font-medium">Social Security Bonus</p>
           </div>
         </div>
       </div>
 
-      {/* Total Value Display - Compact */}
-      <div className="text-center mb-3 px-2">
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-2 rounded-lg max-w-sm mx-auto">
-          <p className="text-sm sm:text-base font-bold">Total Annual Value: $4,720</p>
+      {/* Total Value Display - Larger for Seniors */}
+      <div className="text-center mb-4 px-2">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 rounded-lg max-w-md mx-auto">
+          <p className="text-lg sm:text-xl font-bold">Total Annual Value: $4,720</p>
+          <p className="text-sm sm:text-base opacity-90 mt-1">$2,500 Grocery + $2,220 SS Bonus</p>
         </div>
       </div>
 
-      {/* Initial Claim Button */}
-      <div className="text-center px-2">
-        <div className="mb-2 text-sm sm:text-base font-bold text-red-600">Check Eligibility - Takes 30 Seconds!</div>
+      {/* Initial Claim Button - Larger for Seniors */}
+      <div className="text-center px-3">
+        <div className="mb-4 text-lg sm:text-xl font-bold text-red-600">Check Eligibility - Takes 30 Seconds!</div>
 
         <div className="relative">
           <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
 
           <button
             onClick={onClaimClick}
-            className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-6 sm:py-8 md:py-10 px-4 sm:px-6 md:px-10 rounded-xl text-lg sm:text-2xl md:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 size-pulse"
+            className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-8 sm:py-10 md:py-12 px-6 sm:px-8 md:px-10 rounded-xl text-xl sm:text-2xl md:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 size-pulse"
           >
-            <div className="absolute -right-2 -top-2 sm:-right-3 sm:-top-3 bg-yellow-400 text-red-700 text-xs sm:text-sm font-bold px-2 py-1 rounded-full">
+            <div className="absolute -right-2 -top-2 sm:-right-3 sm:-top-3 bg-yellow-400 text-red-700 text-sm sm:text-base font-bold px-3 py-1 rounded-full">
               FREE
             </div>
             <div className="flex items-center justify-center">
               <span>CLAIM NOW</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="ml-2 h-6 w-6 sm:h-8 sm:w-8"
+                className="ml-3 h-7 w-7 sm:h-8 sm:w-8"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -110,10 +111,10 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
           </button>
         </div>
 
-        <div className="mt-2 flex justify-center items-center text-xs sm:text-sm text-gray-600">
+        <div className="mt-4 flex justify-center items-center text-sm sm:text-base text-gray-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5"
+            className="h-4 w-4 sm:h-5 sm:w-5 mr-2"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -127,14 +128,14 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
         </div>
       </div>
 
-      {/* Benefits Section - Mobile Optimized */}
-      <div className="flex justify-center mt-5 mb-5 px-2">
-        <div className="bg-green-100 rounded-lg p-3 sm:p-4 max-w-md shadow-md border border-green-200 w-full">
-          <h3 className="font-bold text-center text-base sm:text-lg mb-3 text-green-800">What Your Benefits Cover:</h3>
-          <ul className="list-none space-y-2 text-sm sm:text-base">
-            <li className="flex items-start bg-white p-2 rounded-md shadow-sm">
+      {/* Benefits Section - Larger Text for Seniors */}
+      <div className="flex justify-center mt-6 mb-6 px-3">
+        <div className="bg-green-100 rounded-lg p-4 sm:p-5 max-w-lg shadow-md border border-green-200 w-full">
+          <h3 className="font-bold text-center text-lg sm:text-xl mb-4 text-green-800">What Your Benefits Cover:</h3>
+          <ul className="list-none space-y-3 text-base sm:text-lg">
+            <li className="flex items-start bg-white p-3 rounded-md shadow-sm">
               <svg
-                className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mr-3 mt-1 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -145,9 +146,9 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
                 <span className="font-bold">$2,500 Groceries</span> at Walmart, Target & more
               </span>
             </li>
-            <li className="flex items-start bg-white p-2 rounded-md shadow-sm">
+            <li className="flex items-start bg-white p-3 rounded-md shadow-sm">
               <svg
-                className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mr-3 mt-1 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -158,9 +159,9 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
                 <span className="font-bold">$185 Monthly</span> Social Security bonus
               </span>
             </li>
-            <li className="flex items-start bg-white p-2 rounded-md shadow-sm">
+            <li className="flex items-start bg-white p-3 rounded-md shadow-sm">
               <svg
-                className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 mr-3 mt-1 flex-shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -175,93 +176,93 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
         </div>
       </div>
 
-      {/* Social Proof Section - Mobile Optimized */}
-      <div className="mt-6 mb-6 bg-white rounded-lg shadow-md p-3 sm:p-5 mx-2">
-        <h3 className="text-center text-lg sm:text-xl font-bold mb-4 text-blue-800">What Seniors Are Saying</h3>
+      {/* Social Proof Section - Larger Text for Seniors */}
+      <div className="mt-8 mb-8 bg-white rounded-lg shadow-md p-4 sm:p-6 mx-3">
+        <h3 className="text-center text-xl sm:text-2xl font-bold mb-5 text-blue-800">What Seniors Are Saying</h3>
 
-        <div className="grid grid-cols-1 gap-4">
-          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-100 shadow-sm">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm sm:text-lg mr-3 flex-shrink-0">
+        <div className="grid grid-cols-1 gap-5">
+          <div className="bg-blue-50 p-4 sm:p-5 rounded-lg border border-blue-100 shadow-sm">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg sm:text-xl mr-4 flex-shrink-0">
                 MT
               </div>
               <div>
-                <div className="font-medium text-gray-800 text-sm sm:text-base">Margaret T.</div>
+                <div className="font-medium text-gray-800 text-base sm:text-lg">Margaret T.</div>
                 <div className="flex text-yellow-400">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-current" viewBox="0 0 24 24">
+                    <svg key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                   ))}
                 </div>
               </div>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 italic">
+            <p className="text-base sm:text-lg text-gray-700 italic leading-relaxed">
               "The $2,500 grocery allowance and $185 monthly bonus have been life-changing! The process was so easy and
               the advisor was very helpful."
             </p>
-            <div className="mt-2 text-xs sm:text-sm text-gray-500">Medicare recipient since 2018</div>
+            <div className="mt-3 text-sm sm:text-base text-gray-500">Medicare recipient since 2018</div>
           </div>
 
-          <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-100 shadow-sm">
-            <div className="flex items-center mb-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm sm:text-lg mr-3 flex-shrink-0">
+          <div className="bg-blue-50 p-4 sm:p-5 rounded-lg border border-blue-100 shadow-sm">
+            <div className="flex items-center mb-4">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold text-lg sm:text-xl mr-4 flex-shrink-0">
                 RJ
               </div>
               <div>
-                <div className="font-medium text-gray-800 text-sm sm:text-base">Robert J.</div>
+                <div className="font-medium text-gray-800 text-base sm:text-lg">Robert J.</div>
                 <div className="flex text-yellow-400">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-3 h-3 sm:w-4 sm:h-4 fill-current" viewBox="0 0 24 24">
+                    <svg key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-current" viewBox="0 0 24 24">
                       <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                     </svg>
                   ))}
                 </div>
               </div>
             </div>
-            <p className="text-sm sm:text-base text-gray-700 italic">
+            <p className="text-base sm:text-lg text-gray-700 italic leading-relaxed">
               "I had no idea I qualified for both benefits! Now I get $185 extra each month plus the grocery allowance.
               Amazing!"
             </p>
-            <div className="mt-2 text-xs sm:text-sm text-gray-500">Medicare recipient since 2020</div>
+            <div className="mt-3 text-sm sm:text-base text-gray-500">Medicare recipient since 2020</div>
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
-          <div className="bg-green-50 p-2 sm:p-3 rounded-lg border border-green-100 text-center">
-            <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1">98%</div>
-            <div className="text-xs sm:text-sm text-gray-700">Satisfaction</div>
+        <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border border-green-100 text-center">
+            <div className="text-xl sm:text-3xl font-bold text-green-600 mb-1">98%</div>
+            <div className="text-sm sm:text-base text-gray-700">Satisfaction</div>
           </div>
-          <div className="bg-green-50 p-2 sm:p-3 rounded-lg border border-green-100 text-center">
-            <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1">24K+</div>
-            <div className="text-xs sm:text-sm text-gray-700">Seniors Helped</div>
+          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border border-green-100 text-center">
+            <div className="text-xl sm:text-3xl font-bold text-green-600 mb-1">24K+</div>
+            <div className="text-sm sm:text-base text-gray-700">Seniors Helped</div>
           </div>
-          <div className="bg-green-50 p-2 sm:p-3 rounded-lg border border-green-100 text-center">
-            <div className="text-lg sm:text-2xl font-bold text-green-600 mb-1">$4,720</div>
-            <div className="text-xs sm:text-sm text-gray-700">Avg Value</div>
+          <div className="bg-green-50 p-3 sm:p-4 rounded-lg border border-green-100 text-center">
+            <div className="text-xl sm:text-3xl font-bold text-green-600 mb-1">$4,720</div>
+            <div className="text-sm sm:text-base text-gray-700">Avg Value</div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Claim Button - Mobile Optimized */}
-      <div className="text-center mt-8 mb-4 px-2">
-        <div className="mb-3 text-sm sm:text-base font-bold text-red-600">Don't Miss This $4,720 Opportunity!</div>
+      {/* Bottom Claim Button - Larger for Seniors */}
+      <div className="text-center mt-8 mb-6 px-3">
+        <div className="mb-4 text-lg sm:text-xl font-bold text-red-600">Don't Miss This $4,720 Opportunity!</div>
 
         <div className="relative">
           <div className="absolute inset-0 bg-yellow-400 blur-xl opacity-30 rounded-2xl"></div>
 
           <button
             onClick={onClaimClick}
-            className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-8 sm:py-10 md:py-12 px-4 sm:px-6 md:px-10 rounded-xl text-lg sm:text-2xl md:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 size-pulse"
+            className="relative w-full max-w-lg mx-auto bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-10 sm:py-12 md:py-14 px-6 sm:px-8 md:px-10 rounded-xl text-xl sm:text-2xl md:text-3xl shadow-2xl transition-all duration-200 ease-in-out border-4 border-yellow-400 size-pulse"
           >
-            <div className="absolute -right-2 -top-2 sm:-right-3 sm:-top-3 bg-yellow-400 text-red-700 text-xs sm:text-sm font-bold px-2 py-1 rounded-full">
+            <div className="absolute -right-2 -top-2 sm:-right-3 sm:-top-3 bg-yellow-400 text-red-700 text-sm sm:text-base font-bold px-3 py-1 rounded-full">
               FREE
             </div>
             <div className="flex items-center justify-center">
               <span>CLAIM NOW</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="ml-2 h-6 w-6 sm:h-8 sm:w-8"
+                className="ml-3 h-7 w-7 sm:h-8 sm:w-8"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -275,10 +276,10 @@ export default function InitialContent({ allowanceAmount, onClaimClick }: Initia
           </button>
         </div>
 
-        <div className="mt-3 flex justify-center items-center text-xs sm:text-sm text-gray-600">
+        <div className="mt-4 flex justify-center items-center text-sm sm:text-base text-gray-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-3 w-3 sm:h-4 sm:w-4 mr-1.5"
+            className="h-4 w-4 sm:h-5 sm:w-5 mr-2"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
